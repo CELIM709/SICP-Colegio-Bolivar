@@ -1,0 +1,28 @@
+# Dependencias (Miles de archivos descargados por npm)
+node_modules/
+/.pnp
+.pnp.js
+
+# Compilacion y cache de Next.js (Se genera automaticamente, NUNCA se sube a git)
+.next/
+out/
+build/
+dist/
+
+# Archivos de entorno y credenciales locales
+.env*.local
+
+# Logs de error
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Vercel
+.vercel
+
+# Archivos del sistema operativo y editores
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
