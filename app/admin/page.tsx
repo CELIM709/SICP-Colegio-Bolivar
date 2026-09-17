@@ -14,7 +14,8 @@ import {
   School,
   Settings,
   AlertTriangle,
-  ArrowRight
+  ArrowRight,
+  RotateCcw
 } from 'lucide-react';
 
 interface PagoResumen {
@@ -23,6 +24,9 @@ interface PagoResumen {
   representante: string;
   ci: string;
   metodo: string;
+  moneda?: 'BS' | 'USD';
+  montoPagado?: number;
+  tasaCambio?: number;
   montoUsd: number;
   fecha: string;
   estado: 'PENDIENTE' | 'APROBADO' | 'RECHAZADO';
@@ -30,11 +34,31 @@ interface PagoResumen {
 }
 
 export default function AdminDashboardPage() {
-  const [tasaBCV, setTasaBCV] = useState(804.81);
+  const [tasaBCV, setTasaBCV] = useState(832.49);
   const [esContingencia, setEsContingencia] = useState(false);
-  const [adminNombre, setAdminNombre] = useState('Prof. Carmen Silva');
+  const [adminNombre, setAdminNombre] = useState('Prof. Celimar Rojas');
+  const [pagos, setPagos] = useState<PagoResumen[]>([]);
+
+  const formatearFechaRelativa = (diasAtras: number = 0, horaStr: string = '10:30 AM') => {
+    const d = new Date();
+    d.setDate(d.getDate() - diasAtras);
+    const meses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+    const dia = String(d.getDate()).padStart(2, '0');
+    const mes = meses[d.getMonth()];
+    const anio = d.getFullYear();
+    return `${dia} ${mes} ${anio}, ${horaStr}`;
+  };
+
+  const ordenarPagos = (lista: any[]) => {
+    return [...lista].sort((a, b) => {
+      const tA = a.createdAt || (a.id && a.id.startsWith('p-') && a.id.length > 8 ? Number(a.id.replace('p-', '')) : 0) || 0;
+      const tB = b.createdAt || (b.id && b.id.startsWith('p-') && b.id.length > 8 ? Number(b.id.replace('p-', '')) : 0) || 0;
+      return tB - tA;
+    });
+  };
 
   useEffect(() => {
+    // Consulta de tasa en vivo
     fetch('/api/tasa')
       .then(r => r.json())
       .then(data => {
@@ -59,52 +83,160 @@ export default function AdminDashboardPage() {
       if (session) {
         try {
           const parsed = JSON.parse(session);
+          // Migración automática garantizada a Prof. Celimar Rojas
+          if (parsed.nombre?.includes('Carmen') || parsed.email === 'admin@colegiobolivar.edu.ve' || parsed.rol === 'ADMINISTRADOR') {
+            parsed.nombre = 'Prof. Celimar Rojas';
+            parsed.cargo = 'Secretaría General y Control de Estudios';
+            localStorage.setItem('sicp_session', JSON.stringify(parsed));
+          }
           if (parsed.nombre) setAdminNombre(parsed.nombre);
         } catch {}
       }
+
+      // Lista de pagos predeterminados de demostración (orden de llegada descendente)
+      const now = Date.now();
+      const defaultDemoPagos = [
+        {
+          id: 'p-101',
+          createdAt: now - 3600000,
+          referencia: 'PM-984210',
+          bancoEmisor: 'Banesco (0134)',
+          metodo: 'Pago Móvil',
+          representante: 'María Elena Delgado',
+          ciRepresentante: 'V-18.542.991',
+          moneda: 'BS',
+          montoPagado: 41624.50,
+          tasaCambio: 832.49,
+          montoUsd: 50.00,
+          fechaReporte: formatearFechaRelativa(0, '10:30 AM'),
+          estado: 'APROBADO',
+          imputaciones: [
+            { estudiante: 'Sofia Valentina Pérez Delgado', grado: '1er Grado Sección A', cedulaEscolar: '18-18542991-01', montoUsd: 25.00, saldoAnteriorUsd: 50.00, saldoRestanteEstimadoUsd: 25.00 },
+            { estudiante: 'Mateo Alejandro Pérez Delgado', grado: 'Maternal', cedulaEscolar: '22-18542991-02', montoUsd: 25.00, saldoAnteriorUsd: 50.00, saldoRestanteEstimadoUsd: 25.00 }
+          ]
+        },
+        {
+          id: 'p-102',
+          createdAt: now - 7200000,
+          referencia: 'TR-772190',
+          bancoEmisor: 'Banco de Venezuela (0102)',
+          metodo: 'Transferencia Bancaria',
+          representante: 'Carlos Andrés Mendoza',
+          ciRepresentante: 'V-15.320.104',
+          moneda: 'BS',
+          montoPagado: 41624.50,
+          tasaCambio: 832.49,
+          montoUsd: 50.00,
+          fechaReporte: formatearFechaRelativa(0, '09:15 AM'),
+          estado: 'PENDIENTE',
+          imputaciones: [
+            { estudiante: 'Lucas Mendoza', grado: '3er Grado B', cedulaEscolar: '16-15320104-01', montoUsd: 50.00, saldoAnteriorUsd: 50.00, saldoRestanteEstimadoUsd: 0.00 }
+          ]
+        },
+        {
+          id: 'p-103',
+          createdAt: now - 86400000,
+          referencia: 'TR-440129',
+          bancoEmisor: 'Banco Provincial (0108)',
+          metodo: 'Transferencia Bancaria',
+          representante: 'Valentina Morales',
+          ciRepresentante: 'V-19.880.455',
+          moneda: 'BS',
+          montoPagado: 41624.50,
+          tasaCambio: 832.49,
+          montoUsd: 50.00,
+          fechaReporte: formatearFechaRelativa(1, '04:45 PM'),
+          estado: 'PENDIENTE',
+          imputaciones: [
+            { estudiante: 'Camila Morales', grado: '2do Año', cedulaEscolar: '12-19880455-01', montoUsd: 50.00, saldoAnteriorUsd: 50.00, saldoRestanteEstimadoUsd: 0.00 }
+          ]
+        },
+        {
+          id: 'p-104',
+          createdAt: now - 172800000,
+          referencia: 'PM-112093',
+          bancoEmisor: 'Mercantil (0105)',
+          metodo: 'Pago Móvil',
+          representante: 'Roberto Gómez',
+          ciRepresentante: 'V-14.221.800',
+          moneda: 'BS',
+          montoPagado: 41624.50,
+          tasaCambio: 832.49,
+          montoUsd: 50.00,
+          fechaReporte: formatearFechaRelativa(2, '02:10 PM'),
+          estado: 'APROBADO',
+          imputaciones: [
+            { estudiante: 'Andrea Gómez', grado: '5to Grado', cedulaEscolar: '14-14221800-01', montoUsd: 50.00, saldoAnteriorUsd: 50.00, saldoRestanteEstimadoUsd: 0.00 }
+          ]
+        }
+      ];
+
+      // Carga y combinación sincronizada de pagos desde sicp_pagos_db
+      let rawList = defaultDemoPagos;
+      const stored = localStorage.getItem('sicp_pagos_db');
+      if (stored) {
+        try {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            const map = new Map<string, any>();
+            defaultDemoPagos.forEach(p => map.set(p.id, p));
+            parsed.forEach((p: any) => {
+              if (p.id === 'p-103' && p.metodo?.includes('Zelle')) return;
+              if (p.id === 'p-101' && p.imputaciones?.length === 1 && p.imputaciones[0].estudiante?.includes('Mateo') && p.montoUsd === 20) return;
+              map.set(p.id, p);
+            });
+            rawList = Array.from(map.values());
+          }
+        } catch {}
+      }
+
+      rawList = ordenarPagos(rawList);
+      localStorage.setItem('sicp_pagos_db', JSON.stringify(rawList));
+
+      const formatted: PagoResumen[] = rawList.map((p: any) => ({
+        id: p.id,
+        referencia: p.referencia,
+        representante: p.representante,
+        ci: p.ciRepresentante || 'V-18.542.991',
+        metodo: p.metodo,
+        moneda: p.moneda,
+        montoPagado: p.montoPagado,
+        tasaCambio: p.tasaCambio,
+        montoUsd: p.montoUsd,
+        fecha: p.fechaReporte || formatearFechaRelativa(0, '10:30 AM'),
+        estado: p.estado,
+        estudiantes: (p.imputaciones || []).map((imp: any) => `${imp.estudiante} (${imp.grado})`)
+      }));
+      setPagos(formatted);
     }
   }, []);
-
-  const [pagos, setPagos] = useState<PagoResumen[]>([
-    {
-      id: 'p-101',
-      referencia: 'PM-984210',
-      representante: 'María Elena Delgado',
-      ci: 'V-18.542.991',
-      metodo: 'Pago Móvil (0134 - Banesco)',
-      montoUsd: 50.00,
-      fecha: '03 Sep 2026, 10:30 AM',
-      estado: 'PENDIENTE',
-      estudiantes: ['Sofia Pérez Delgado (1er Grado)', 'Mateo Pérez Delgado (Maternal)']
-    },
-    {
-      id: 'p-102',
-      referencia: 'TR-772190',
-      representante: 'Carlos Andrés Mendoza',
-      ci: 'V-15.320.104',
-      metodo: 'Transferencia (0102 - Banco de Venezuela)',
-      montoUsd: 50.00,
-      fecha: '03 Sep 2026, 09:15 AM',
-      estado: 'PENDIENTE',
-      estudiantes: ['Lucas Mendoza (3er Grado)']
-    },
-    {
-      id: 'p-103',
-      referencia: 'ZL-440129',
-      representante: 'Valentina Morales',
-      ci: 'V-19.880.455',
-      metodo: 'Zelle',
-      montoUsd: 50.00,
-      fecha: '02 Sep 2026, 04:45 PM',
-      estado: 'PENDIENTE',
-      estudiantes: ['Camila Morales (2do Año)']
-    }
-  ]);
 
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const handleQuickAction = (id: string, nuevoEstado: 'APROBADO' | 'RECHAZADO') => {
-    setPagos(prev => prev.map(p => p.id === id ? { ...p, estado: nuevoEstado } : p));
+    const motivoDefault = 'Referencia bancaria no encontrada en extracto bancario';
+    setPagos(prev => {
+      const updated = prev.map(p => p.id === id ? { 
+        ...p, 
+        estado: nuevoEstado,
+        ...(nuevoEstado === 'RECHAZADO' && !(p as any).motivoRechazo ? { motivoRechazo: motivoDefault } : {})
+      } : p);
+      if (typeof window !== 'undefined') {
+        const stored = localStorage.getItem('sicp_pagos_db');
+        if (stored) {
+          try {
+            const dbList = JSON.parse(stored);
+            const newDb = dbList.map((p: any) => p.id === id ? { 
+              ...p, 
+              estado: nuevoEstado,
+              ...(nuevoEstado === 'RECHAZADO' && !p.motivoRechazo ? { motivoRechazo: motivoDefault } : {})
+            } : p);
+            localStorage.setItem('sicp_pagos_db', JSON.stringify(ordenarPagos(newDb)));
+          } catch {}
+        }
+      }
+      return updated;
+    });
     setToastMessage(`Pago ${id} marcado como ${nuevoEstado}`);
     setTimeout(() => setToastMessage(null), 3500);
   };
@@ -193,7 +325,7 @@ export default function AdminDashboardPage() {
             </div>
           </div>
           <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-2xl font-black text-white">3</span>
+            <span className="text-2xl font-black text-white">{pagos.filter(p => p.estado === 'PENDIENTE').length}</span>
             <span className="text-xs text-amber-400 font-bold">Pendientes</span>
           </div>
           <p className="text-[11px] text-slate-400 mt-1">Imputaciones múltiples 1 a N</p>
@@ -227,6 +359,33 @@ export default function AdminDashboardPage() {
         </div>
       </div>
 
+      {/* Acceso Rápido a Devoluciones */}
+      <div className="bg-gradient-to-r from-rose-950/40 via-slate-800/80 to-slate-800/80 border border-rose-500/30 p-4 sm:p-5 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-lg">
+        <div className="flex items-center gap-3">
+          <div className="p-2.5 rounded-xl bg-rose-500/20 text-rose-400 border border-rose-500/30">
+            <RotateCcw className="w-5 h-5" />
+          </div>
+          <div>
+            <h3 className="text-sm font-bold text-white flex items-center gap-2">
+              <span>Módulo de Devoluciones y Desistimientos de Matrícula</span>
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30">
+                Nuevo
+              </span>
+            </h3>
+            <p className="text-xs text-slate-300 mt-0.5">
+              Tramita solicitudes de anulación de cupo, liquida reintegros bancarios y genera actas oficiales de finiquito.
+            </p>
+          </div>
+        </div>
+        <Link
+          href="/admin/devoluciones"
+          className="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-rose-600/20 transition-all flex items-center gap-1.5 shrink-0"
+        >
+          <span>Gestionar Devoluciones</span>
+          <ArrowRight className="w-3.5 h-3.5" />
+        </Link>
+      </div>
+
       {/* Pending Transactions Section */}
       <div className="bg-slate-800/90 border border-slate-700/80 rounded-3xl p-6 shadow-xl space-y-4">
         <div className="flex items-center justify-between border-b border-slate-700/80 pb-4">
@@ -249,57 +408,68 @@ export default function AdminDashboardPage() {
         </div>
 
         <div className="space-y-3">
-          {pagos.map((pago) => (
-            <div
-              key={pago.id}
-              className="p-4 bg-slate-900/80 rounded-2xl border border-slate-700 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 transition-all hover:border-slate-600"
-            >
-              <div className="space-y-1">
-                <div className="flex items-center gap-2.5">
-                  <span className="font-mono font-bold text-emerald-300 text-sm">{pago.referencia}</span>
-                  <span className="text-xs px-2 py-0.5 rounded-full font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
-                    {pago.estado}
-                  </span>
-                  <span className="text-xs text-slate-400">{pago.metodo}</span>
-                </div>
-                <div className="text-xs text-slate-300">
-                  Representante: <strong>{pago.representante}</strong> ({pago.ci}) • {pago.fecha}
-                </div>
-                <div className="text-[11px] text-slate-400 flex flex-wrap gap-1 mt-1">
-                  <span className="font-semibold text-slate-300">Alumnos a conciliar:</span>
-                  {pago.estudiantes.map((est, i) => (
-                    <span key={i} className="bg-slate-800 px-2 py-0.5 rounded border border-slate-700 text-emerald-300">
-                      {est}
+          {pagos.map((pago) => {
+            const tasaAplicada = pago.tasaCambio || tasaBCV;
+            const monedaReal = pago.moneda || (pago.metodo.toLowerCase().includes('zelle') || pago.metodo.toLowerCase().includes('dólar') ? 'USD' : 'BS');
+            const montoRealTransferido = pago.montoPagado || (monedaReal === 'BS' ? pago.montoUsd * tasaAplicada : pago.montoUsd);
+
+            return (
+              <div
+                key={pago.id}
+                className="p-4 bg-slate-900/80 rounded-2xl border border-slate-700 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 transition-all hover:border-slate-600"
+              >
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2.5">
+                    <span className="font-mono font-bold text-emerald-300 text-sm">{pago.referencia}</span>
+                    <span className="text-xs px-2 py-0.5 rounded-full font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                      {pago.estado}
                     </span>
-                  ))}
+                    <span className="text-xs text-slate-400">{pago.metodo}</span>
+                  </div>
+                  <div className="text-xs text-slate-300">
+                    Representante: <strong>{pago.representante}</strong> ({pago.ci}) • {pago.fecha}
+                  </div>
+                  <div className="text-[11px] text-slate-400 flex flex-wrap gap-1 mt-1">
+                    <span className="font-semibold text-slate-300">Alumnos a conciliar:</span>
+                    {pago.estudiantes.map((est, i) => (
+                      <span key={i} className="bg-slate-800 px-2 py-0.5 rounded border border-slate-700 text-emerald-300">
+                        {est}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3 w-full lg:w-auto justify-between lg:justify-end border-t lg:border-t-0 pt-2 lg:pt-0 border-slate-800">
+                  <div className="text-right">
+                    <span className="text-[10px] text-slate-400 uppercase font-bold block">Monto en Banco</span>
+                    <span className="text-sm font-extrabold text-emerald-400 font-mono block">
+                      {monedaReal === 'BS' 
+                        ? `Bs. ${montoRealTransferido.toLocaleString('es-VE', { minimumFractionDigits: 2 })}` 
+                        : `$${montoRealTransferido.toFixed(2)} USD`}
+                    </span>
+                    <span className="text-[11px] text-slate-300 font-mono">
+                      Equiv: <strong>${pago.montoUsd.toFixed(2)} USD</strong> ({tasaAplicada.toFixed(2)} Bs/$)
+                    </span>
+                  </div>
+
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => handleQuickAction(pago.id, 'APROBADO')}
+                      className="px-3 py-1.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs rounded-xl shadow-md transition-all cursor-pointer"
+                    >
+                      Aprobar
+                    </button>
+                    <button
+                      onClick={() => handleQuickAction(pago.id, 'RECHAZADO')}
+                      className="px-3 py-1.5 bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 font-bold text-xs rounded-xl border border-rose-500/30 transition-all cursor-pointer"
+                    >
+                      Rechazar
+                    </button>
+                  </div>
                 </div>
               </div>
-
-              <div className="flex items-center gap-3 w-full lg:w-auto justify-between lg:justify-end border-t lg:border-t-0 pt-2 lg:pt-0 border-slate-800">
-                <div className="text-right">
-                  <span className="text-sm font-extrabold text-white block">${pago.montoUsd.toFixed(2)} USD</span>
-                  <span className="text-[11px] text-emerald-400 font-mono">
-                    Bs. {(pago.montoUsd * tasaBCV).toLocaleString('es-VE', { minimumFractionDigits: 2 })}
-                  </span>
-                </div>
-
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => handleQuickAction(pago.id, 'APROBADO')}
-                    className="px-3 py-1.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs rounded-xl shadow-md transition-all cursor-pointer"
-                  >
-                    Aprobar
-                  </button>
-                  <button
-                    onClick={() => handleQuickAction(pago.id, 'RECHAZADO')}
-                    className="px-3 py-1.5 bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 font-bold text-xs rounded-xl border border-rose-500/30 transition-all cursor-pointer"
-                  >
-                    Rechazar
-                  </button>
-                </div>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </div>

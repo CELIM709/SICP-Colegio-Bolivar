@@ -15,7 +15,8 @@ import {
   ArrowLeft,
   Sun, 
   Moon,
-  AlertTriangle
+  AlertTriangle,
+  RotateCcw
 } from 'lucide-react';
 
 export default function AdminLayout({
@@ -27,16 +28,18 @@ export default function AdminLayout({
   const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(true);
-  const [tasaLive, setTasaLive] = useState(804.81);
+  const [tasaLive, setTasaLive] = useState(832.49);
   const [esContingencia, setEsContingencia] = useState(false);
+  const [pendientesCount, setPendientesCount] = useState(3);
+  const [devolucionesCount, setDevolucionesCount] = useState(0);
   const [adminUser, setAdminUser] = useState({
-    nombre: 'Prof. Carmen Silva',
+    nombre: 'Prof. Celimar Rojas',
     email: 'admin@colegiobolivar.edu.ve',
-    cargo: 'Administrador Principal'
+    cargo: 'Secretaría General y Control de Estudios'
   });
 
   useEffect(() => {
-    // Fetch live rate & status
+    // Consulta de tasa en vivo y estado del servicio
     fetch('/api/tasa')
       .then(r => r.json())
       .then(data => {
@@ -51,25 +54,57 @@ export default function AdminLayout({
         setEsContingencia(true);
       });
 
-    // Check simulated contingency in localStorage
+    // Verificación de contingencia simulada en almacenamiento local
     if (typeof window !== 'undefined') {
       const simulated = localStorage.getItem('sicp_contingencia_simulada');
       if (simulated === 'true') {
         setEsContingencia(true);
       }
 
-      // Read real logged-in admin user from session
+      // Conteo dinámico de pagos pendientes en sicp_pagos_db
+      const storedPagos = localStorage.getItem('sicp_pagos_db');
+      if (storedPagos) {
+        try {
+          const parsedPagos = JSON.parse(storedPagos);
+          if (Array.isArray(parsedPagos)) {
+            const count = parsedPagos.filter((p: any) => p.estado === 'PENDIENTE').length;
+            setPendientesCount(count);
+          }
+        } catch {}
+      }
+
+      // Conteo dinámico de devoluciones pendientes
+      const storedDevs = localStorage.getItem('sicp_devoluciones_db');
+      if (storedDevs) {
+        try {
+          const parsedDevs = JSON.parse(storedDevs);
+          if (Array.isArray(parsedDevs)) {
+            const cleanDevs = parsedDevs.filter((d: any) => 
+              !d.estudiante?.toLowerCase().includes('andrés eduardo mendoza') &&
+              !d.estudiante?.toLowerCase().includes('andres eduardo mendoza') &&
+              d.id !== 'dev-demo-1'
+            );
+            const count = cleanDevs.filter((d: any) => d.estado === 'SOLICITADA').length;
+            setDevolucionesCount(count);
+          }
+        } catch {}
+      }
+
+      // Lectura del usuario administrador activo desde la sesión
       const session = localStorage.getItem('sicp_session');
       if (session) {
         try {
           const parsed = JSON.parse(session);
-          if (parsed.nombre) {
-            setAdminUser({
-              nombre: parsed.nombre,
-              email: parsed.email || 'admin@colegiobolivar.edu.ve',
-              cargo: parsed.cargo || (parsed.rol === 'ADMINISTRADOR' ? 'Personal Administrativo' : 'Administrador')
-            });
+          if (parsed.nombre?.includes('Carmen') || parsed.email === 'admin@colegiobolivar.edu.ve' || parsed.rol === 'ADMINISTRADOR') {
+            parsed.nombre = 'Prof. Celimar Rojas';
+            parsed.cargo = 'Secretaría General y Control de Estudios';
+            localStorage.setItem('sicp_session', JSON.stringify(parsed));
           }
+          setAdminUser({
+            nombre: parsed.nombre || 'Prof. Celimar Rojas',
+            email: parsed.email || 'admin@colegiobolivar.edu.ve',
+            cargo: parsed.cargo || 'Secretaría General y Control de Estudios'
+          });
         } catch {}
       }
     }
@@ -84,7 +119,8 @@ export default function AdminLayout({
 
   const navItems = [
     { href: '/admin', label: 'Panel General', icon: LayoutDashboard },
-    { href: '/admin/pagos', label: 'Validar Pagos', icon: CreditCard, badge: '3' },
+    { href: '/admin/pagos', label: 'Validar Pagos', icon: CreditCard, badge: pendientesCount > 0 ? String(pendientesCount) : undefined },
+    { href: '/admin/devoluciones', label: 'Devoluciones', icon: RotateCcw, badge: devolucionesCount > 0 ? String(devolucionesCount) : undefined },
     { href: '/admin/estudiantes', label: 'Estudiantes & Cédula', icon: Users },
     { href: '/admin/configuracion', label: 'Período & Tasa BCV', icon: Settings },
   ];
@@ -103,15 +139,15 @@ export default function AdminLayout({
       <header className={`md:hidden border-b px-4 py-3 flex items-center justify-between sticky top-0 z-50 ${
         isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'
       }`}>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2.5">
           <img 
             src="/logo-colegio.png" 
             alt="Logo Colegio Bolívar" 
-            className="w-10 h-10 object-contain drop-shadow-sm shrink-0" 
+            className="w-12 h-12 object-contain drop-shadow-sm shrink-0" 
           />
-          <div>
+          <div className="flex items-center gap-1.5">
             <span className="font-bold text-base tracking-tight">SICP</span>
-            <span className="text-xs text-emerald-400 font-semibold ml-1.5 px-1.5 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/20">ADMIN</span>
+            <span className="text-[10px] text-emerald-400 font-bold px-1.5 py-0.5 rounded-md bg-emerald-500/10 border border-emerald-500/20">ADMIN</span>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -251,15 +287,16 @@ export default function AdminLayout({
           </div>
           <div className="flex gap-2">
             <Link
-              href="/portal"
-              className={`flex-1 flex items-center justify-center gap-1 px-2 py-1.5 text-xs font-medium rounded-lg transition-colors border ${
+              href="/"
+              className={`flex-1 flex items-center justify-center gap-1.5 px-2 py-1.5 text-xs font-medium rounded-lg transition-colors border ${
                 isDarkMode 
                   ? 'text-slate-400 hover:text-slate-200 bg-slate-800 hover:bg-slate-700 border-slate-700' 
                   : 'text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 border-slate-300'
               }`}
+              title="Ir a la Página Principal"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
-              <span>Ver Portal</span>
+              <span>Ir al Inicio</span>
             </Link>
             <button
               onClick={handleLogout}

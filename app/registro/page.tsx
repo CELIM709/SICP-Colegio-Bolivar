@@ -20,6 +20,7 @@ import {
   Sparkles,
   Building
 } from 'lucide-react';
+import { validarCorreoElectronico } from '@/lib/validaciones';
 
 export default function RegistroPage() {
   const router = useRouter();
@@ -37,7 +38,7 @@ export default function RegistroPage() {
   const [loading, setLoading] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(true);
 
-  // Validation handlers
+  // Controladores de validación de campos
   const handleNombresChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
     if (val === '' || /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(val)) {
@@ -85,6 +86,12 @@ export default function RegistroPage() {
     const emailClean = formData.email.trim().toLowerCase();
     const cedulaClean = formData.cedula.trim();
 
+    const emailVal = validarCorreoElectronico(emailClean);
+    if (!emailVal.valido) {
+      setError(emailVal.error || 'Correo electrónico inválido.');
+      return;
+    }
+
     if (!formData.nombres.trim() || !/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(formData.nombres.trim())) {
       setError('El nombre solo debe contener letras.');
       return;
@@ -108,14 +115,14 @@ export default function RegistroPage() {
 
     setLoading(true);
     try {
-      // Manage persistent users DB in localStorage
+      // Gestionar base de datos persistente de usuarios en localStorage
       let usersDb: any[] = [];
       const storedDb = localStorage.getItem('sicp_users_db');
       if (storedDb) {
         try { usersDb = JSON.parse(storedDb); } catch {}
       }
 
-      // Check if user already exists
+      // Verificar si el usuario ya existe
       const existingUser = usersDb.find((u: any) => u.email === emailClean || u.cedula === cedulaClean);
       if (existingUser) {
         setError('Este correo electrónico o cédula ya se encuentra registrado. Inicia sesión o recupera tu acceso.');
@@ -123,7 +130,7 @@ export default function RegistroPage() {
         return;
       }
 
-      // Create new user record with selected role
+      // Crear nuevo registro de usuario con el rol seleccionado
       const newUser = {
         email: emailClean,
         password: formData.password,
@@ -137,7 +144,7 @@ export default function RegistroPage() {
       usersDb.push(newUser);
       localStorage.setItem('sicp_users_db', JSON.stringify(usersDb));
 
-      // Set active session with cargo
+      // Establecer sesión activa
       localStorage.setItem('sicp_session', JSON.stringify({
         rol: newUser.rol,
         email: newUser.email,
@@ -147,7 +154,7 @@ export default function RegistroPage() {
         cargo: newUser.cargo || (rol === 'ADMINISTRADOR' ? 'Personal Administrativo' : undefined)
       }));
 
-      // If representative, initialize their personal students array
+      // Si es representante, inicializar su arreglo personal de representados
       if (rol === 'REPRESENTANTE') {
         localStorage.setItem(`representados_${newUser.email}`, JSON.stringify([]));
         router.push('/portal');
@@ -165,11 +172,11 @@ export default function RegistroPage() {
     <div className={`min-h-screen relative overflow-hidden flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 font-sans transition-colors duration-300 ${
       isDarkMode ? 'bg-slate-950 text-slate-100' : 'bg-slate-50 text-slate-900'
     }`}>
-      {/* Background Animated Blobs */}
+      {/* Círculos decorativos con efecto difuminado */}
       <div className="absolute top-0 right-1/4 w-96 h-96 bg-emerald-500/15 rounded-full blur-3xl filter animate-blob pointer-events-none"></div>
       <div className="absolute bottom-10 left-1/4 w-96 h-96 bg-teal-500/15 rounded-full blur-3xl filter animate-blob animation-delay-2000 pointer-events-none"></div>
 
-      {/* Top Floating Bar: Back + Theme Toggle */}
+      {/* Barra superior flotante: Regresar + Modo Claro/Oscuro */}
       <div className="absolute top-4 left-4 right-4 flex items-center justify-between z-20 max-w-5xl mx-auto">
         <Link
           href="/login"
@@ -213,7 +220,7 @@ export default function RegistroPage() {
           isDarkMode ? 'bg-slate-900/85 border-slate-800' : 'bg-white/90 border-slate-200'
         }`}>
 
-          {/* Role Selector: Representante vs Administrador */}
+          {/* Selector de Rol: Representante vs Administrador */}
           <div>
             <label className={`block text-xs font-bold mb-2 ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}>
               Selecciona el Tipo de Cuenta a Crear:
@@ -254,7 +261,7 @@ export default function RegistroPage() {
             </div>
           </div>
 
-          {/* Role Context Notice */}
+          {/* Nota contextual según el rol seleccionado */}
           {rol === 'REPRESENTANTE' ? (
             <div className={`p-3.5 rounded-2xl text-xs flex items-center gap-2.5 ${
               isDarkMode ? 'bg-emerald-950/30 border border-emerald-500/30 text-emerald-300' : 'bg-emerald-50 border border-emerald-300 text-emerald-900'
@@ -289,7 +296,7 @@ export default function RegistroPage() {
                   required
                   value={formData.nombres}
                   onChange={handleNombresChange}
-                  placeholder={rol === 'ADMINISTRADOR' ? 'Prof. Carmen' : 'María Elena'}
+                  placeholder={rol === 'ADMINISTRADOR' ? 'Prof. Celimar' : 'María Elena'}
                   className={`w-full border rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:border-emerald-500 ${
                     isDarkMode ? 'bg-slate-950/90 border-slate-700 text-white placeholder-slate-500' : 'bg-white border-slate-300 text-slate-900 placeholder-slate-400'
                   }`}
@@ -304,7 +311,7 @@ export default function RegistroPage() {
                   required
                   value={formData.apellidos}
                   onChange={handleApellidosChange}
-                  placeholder={rol === 'ADMINISTRADOR' ? 'Silva Rojas' : 'Delgado Rivas'}
+                  placeholder={rol === 'ADMINISTRADOR' ? 'Rojas' : 'Delgado Rivas'}
                   className={`w-full border rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:border-emerald-500 ${
                     isDarkMode ? 'bg-slate-950/90 border-slate-700 text-white placeholder-slate-500' : 'bg-white border-slate-300 text-slate-900 placeholder-slate-400'
                   }`}

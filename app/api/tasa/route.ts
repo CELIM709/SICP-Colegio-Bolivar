@@ -9,7 +9,7 @@ export async function GET() {
     return NextResponse.json(data);
   } catch (error) {
     return NextResponse.json({
-      tasa: 804.81,
+      tasa: 832.49,
       fecha: new Date().toISOString().split('T')[0],
       origen: 'MANUAL_ADMIN',
       alertaFallo: true

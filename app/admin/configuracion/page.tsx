@@ -24,8 +24,8 @@ export default function AdminConfiguracionPage() {
     activo: true
   });
 
-  const [tasaActual, setTasaActual] = useState(804.81);
-  const [tasaManualInput, setTasaManualInput] = useState('804.81');
+  const [tasaActual, setTasaActual] = useState(832.49);
+  const [tasaManualInput, setTasaManualInput] = useState('832.49');
   const [cargandoApi, setCargandoApi] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [esContingencia, setEsContingencia] = useState(false);
@@ -59,9 +59,9 @@ export default function AdminConfiguracionPage() {
   }, []);
 
   const [historicoTasas, setHistoricoTasas] = useState([
-    { fecha: 'Hoy', valor: 804.81, origen: 'API BCV Oficial', estado: 'VIGENTE' },
-    { fecha: 'Ayer', valor: 802.15, origen: 'API BCV Oficial', estado: 'HISTÓRICO' },
-    { fecha: '01 Sep 2026', valor: 798.50, origen: 'API BCV Oficial', estado: 'HISTÓRICO' }
+    { fecha: 'Hoy', valor: 832.49, origen: 'API BCV Oficial', estado: 'VIGENTE' },
+    { fecha: 'Ayer', valor: 830.15, origen: 'API BCV Oficial', estado: 'HISTÓRICO' },
+    { fecha: '01 Sep 2026', valor: 825.50, origen: 'API BCV Oficial', estado: 'HISTÓRICO' }
   ]);
 
   const showToast = (msg: string) => {
@@ -248,7 +248,7 @@ export default function AdminConfiguracionPage() {
                     type="text"
                     value={tasaManualInput}
                     onChange={(e) => setTasaManualInput(e.target.value)}
-                    placeholder="804.81"
+                    placeholder="832.49"
                     className="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-4 py-2 text-xs font-mono font-bold text-white focus:outline-none focus:border-emerald-500"
                   />
                   <button

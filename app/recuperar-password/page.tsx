@@ -26,36 +26,37 @@ import {
   Clock,
   Send
 } from 'lucide-react';
+import { validarCorreoElectronico } from '@/lib/validaciones';
 
 export default function RecuperarPasswordPage() {
   const router = useRouter();
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
   
-  // Step 1: Input Email or Cedula
+  // Paso 1: Ingreso de correo electrónico o cédula
   const [identificador, setIdentificador] = useState('');
   const [targetUser, setTargetUser] = useState<any>(null);
   
-  // Step 2: OTP Code & Real-time Countdown
+  // Paso 2: Código OTP y cuenta regresiva en tiempo real
   const [otpSent, setOtpSent] = useState('');
   const [otpInput, setOtpInput] = useState('');
-  const [timeLeft, setTimeLeft] = useState(600); // 10 minutes in seconds
+  const [timeLeft, setTimeLeft] = useState(600); // 10 minutos en segundos
   const [timerActive, setTimerActive] = useState(false);
   const [deliveryMode, setDeliveryMode] = useState<'REAL_EMAIL' | 'SIMULATED'>('SIMULATED');
   
-  // Step 3: New Password
+  // Paso 3: Nueva contraseña
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   
-  // Status states
+  // Estados de control y carga
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [showPresencialInfo, setShowPresencialInfo] = useState(false);
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
-  // Real-time Countdown Timer (Step 2)
+  // Temporizador de cuenta regresiva en tiempo real (Paso 2)
   useEffect(() => {
     let interval: any = null;
     if (timerActive && timeLeft > 0) {
@@ -69,7 +70,7 @@ export default function RecuperarPasswordPage() {
     return () => clearInterval(interval);
   }, [timerActive, timeLeft]);
 
-  // Dynamic Canvas Background
+  // Fondo animado interactivo en Canvas
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -168,7 +169,7 @@ export default function RecuperarPasswordPage() {
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  // Handle Step 1: Submit email or cedula
+  // Manejador del Paso 1: Enviar correo o cédula
   const handleStep1Submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -179,17 +180,25 @@ export default function RecuperarPasswordPage() {
       return;
     }
 
+    if (query.includes('@')) {
+      const emailVal = validarCorreoElectronico(query);
+      if (!emailVal.valido) {
+        setError(emailVal.error || 'Correo electrónico inválido.');
+        return;
+      }
+    }
+
     setLoading(true);
 
     try {
-      // Fetch users from db
+      // Obtener usuarios de la base de datos
       let usersDb: any[] = [];
       const stored = localStorage.getItem('sicp_users_db');
       if (stored) {
         try { usersDb = JSON.parse(stored); } catch {}
       }
 
-      // Predefined default accounts
+      // Cuentas predeterminadas
       const defaultAccounts = [
         {
           email: 'maria.delgado@gmail.com',
@@ -202,7 +211,7 @@ export default function RecuperarPasswordPage() {
         {
           email: 'admin@colegiobolivar.edu.ve',
           password: 'admin1234',
-          nombre: 'Prof. Carmen Silva',
+          nombre: 'Prof. Celimar Rojas',
           cedula: '12345678',
           telefono: '04149998877',
           rol: 'ADMINISTRADOR'
@@ -229,12 +238,12 @@ export default function RecuperarPasswordPage() {
         return;
       }
 
-      // Generate 6-digit OTP
+      // Generar código OTP de 6 dígitos
       const generatedOtp = Math.floor(100000 + Math.random() * 900000).toString();
       setTargetUser(found);
       setOtpSent(generatedOtp);
 
-      // Attempt real email dispatch via backend API
+      // Intentar envío real de correo mediante API de backend
       try {
         const response = await fetch('/api/auth/recuperar', {
           method: 'POST',
@@ -255,7 +264,7 @@ export default function RecuperarPasswordPage() {
         setDeliveryMode('SIMULATED');
       }
 
-      setTimeLeft(600); // Reset timer to 10:00
+      setTimeLeft(600); // Restablecer temporizador a 10:00
       setTimerActive(true);
       setStep(2);
     } catch (err: any) {
@@ -282,7 +291,7 @@ export default function RecuperarPasswordPage() {
     }).catch(() => {});
   };
 
-  // Handle Step 2: Verify OTP
+  // Manejador del Paso 2: Verificar OTP
   const handleStep2Submit = (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -301,7 +310,7 @@ export default function RecuperarPasswordPage() {
     setStep(3);
   };
 
-  // Handle Step 3: Update password
+  // Manejador del Paso 3: Actualizar contraseña
   const handleStep3Submit = (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -350,13 +359,13 @@ export default function RecuperarPasswordPage() {
     <div className={`min-h-screen relative overflow-hidden flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 font-sans transition-colors duration-300 ${
       isDarkMode ? 'bg-slate-950 text-slate-100' : 'bg-slate-50 text-slate-900'
     }`}>
-      {/* Dynamic Animated Canvas */}
+      {/* Fondo animado en Canvas */}
       <canvas
         ref={canvasRef}
         className="absolute inset-0 w-full h-full pointer-events-none z-0"
       />
 
-      {/* Theme Toggle & Back Button */}
+      {/* Selector de Tema y Botón de Regreso */}
       <div className="absolute top-5 left-5 right-5 flex justify-between items-center z-30 max-w-5xl mx-auto">
         <Link
           href="/login"
@@ -386,7 +395,7 @@ export default function RecuperarPasswordPage() {
 
       <div className="relative z-10 sm:mx-auto sm:w-full sm:max-w-xl">
         
-        {/* Header Branding */}
+        {/* Identidad Institucional */}
         <div className="text-center mb-6">
           <div className="inline-flex items-center justify-center mb-2">
             <img src="/logo-colegio.png" alt="Logo Colegio Bolívar" className="w-20 h-20 sm:w-24 sm:h-24 object-contain drop-shadow-xl" />
@@ -397,7 +406,7 @@ export default function RecuperarPasswordPage() {
           </p>
         </div>
 
-        {/* Progress Bar / Steps indicator */}
+        {/* Indicador de Progreso por Pasos */}
         <div className="flex items-center justify-between mb-6 px-4">
           <div className="flex flex-col items-center">
             <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all ${
@@ -436,7 +445,7 @@ export default function RecuperarPasswordPage() {
           </div>
         </div>
 
-        {/* Main Card */}
+        {/* Tarjeta Principal */}
         <div className={`rounded-3xl border shadow-2xl backdrop-blur-xl p-6 sm:p-8 transition-all ${
           isDarkMode 
             ? 'bg-slate-900/90 border-slate-800 text-slate-100 shadow-emerald-950/20' 
@@ -450,7 +459,7 @@ export default function RecuperarPasswordPage() {
             </div>
           )}
 
-          {/* STEP 1: Enter Email or Cedula */}
+          {/* PASO 1: Ingreso de Correo Electrónico o Cédula */}
           {step === 1 && (
             <form onSubmit={handleStep1Submit} className="space-y-4">
               <div className="text-center sm:text-left">
@@ -484,7 +493,7 @@ export default function RecuperarPasswordPage() {
                 </div>
               </div>
 
-              {/* Quick Demo Assist */}
+              {/* Accesos Rápidos de Prueba */}
               <div className={`p-3 rounded-xl border text-xs ${
                 isDarkMode ? 'bg-slate-950/50 border-slate-800 text-slate-400' : 'bg-slate-50 border-slate-200 text-slate-600'
               }`}>
@@ -521,7 +530,7 @@ export default function RecuperarPasswordPage() {
             </form>
           )}
 
-          {/* STEP 2: Input OTP with Live Real-time Countdown */}
+          {/* PASO 2: Ingreso de Código OTP con Cuenta Regresiva en Vivo */}
           {step === 2 && (
             <form onSubmit={handleStep2Submit} className="space-y-4">
               <div className="text-center sm:text-left">
@@ -531,7 +540,7 @@ export default function RecuperarPasswordPage() {
                 </p>
               </div>
 
-              {/* Delivery Status Banner */}
+              {/* Notificación de Estado de Entrega */}
               <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold flex items-center gap-1.5 text-emerald-400">
@@ -539,7 +548,7 @@ export default function RecuperarPasswordPage() {
                     <span>{deliveryMode === 'REAL_EMAIL' ? 'Correo Despachado vía Gmail:' : 'Código OTP Generado (Modo Pruebas):'}</span>
                   </span>
                   
-                  {/* Real-time Countdown Badge */}
+                  {/* Etiqueta de Cuenta Regresiva en Tiempo Real */}
                   <div className={`flex items-center gap-1 text-[11px] px-2.5 py-1 rounded-full font-mono font-bold border ${
                     timeLeft < 60 
                       ? 'bg-rose-500/20 text-rose-300 border-rose-500/40 animate-pulse' 
@@ -616,7 +625,7 @@ export default function RecuperarPasswordPage() {
             </form>
           )}
 
-          {/* STEP 3: Set New Password */}
+          {/* PASO 3: Establecer Nueva Contraseña */}
           {step === 3 && (
             <form onSubmit={handleStep3Submit} className="space-y-4">
               <div className="text-center sm:text-left">
@@ -694,7 +703,7 @@ export default function RecuperarPasswordPage() {
             </form>
           )}
 
-          {/* STEP 4: Success Screen */}
+          {/* PASO 4: Pantalla de Éxito */}
           {step === 4 && (
             <div className="text-center space-y-4 py-4">
               <div className="w-16 h-16 bg-emerald-500/10 border-2 border-emerald-500 rounded-full flex items-center justify-center mx-auto text-emerald-400">

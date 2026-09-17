@@ -90,3 +90,76 @@
 .animation-delay-4000 {
   animation-delay: 4s;
 }
+
+/* =========================================================
+   ESTILOS DE IMPRESIÓN FORMAL (PDF Y CONSTANCIAS)
+   ========================================================= */
+@media print {
+  @page {
+    size: letter portrait;
+    margin: 10mm 12mm 10mm 12mm;
+  }
+
+  html, body {
+    background: #ffffff !important;
+    color: #000000 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  /* Ocultar elementos de navegación y UI no imprimibles */
+  .no-print,
+  nav,
+  header,
+  aside,
+  footer,
+  button {
+    display: none !important;
+  }
+
+  /* Resetear contenedores fijos y modales para que no bloqueen la impresión */
+  .fixed {
+    position: static !important;
+    background: transparent !important;
+    backdrop-filter: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    max-height: none !important;
+    overflow: visible !important;
+    display: block !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+
+  /* Ocultar todo el árbol DOM general */
+  body * {
+    visibility: hidden;
+  }
+
+  /* Mostrar exclusivamente el documento de la constancia y sus hijos */
+  #documento-constancia,
+  #documento-constancia * {
+    visibility: visible !important;
+  }
+
+  #documento-constancia {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    font-size: 11pt !important;
+    line-height: 1.4 !important;
+  }
+}

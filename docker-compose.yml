@@ -1,0 +1,35 @@
+version: '3.8'
+
+# =====================================================================
+# SICP - Sistema Integral de Control de Pagos e Inscripciones Escolares
+# U.E. Colegio Simón Bolívar
+# Configuración Docker Compose para Servicio de Automatización n8n
+# =====================================================================
+
+services:
+  n8n:
+    image: docker.n8n.io/n8nio/n8n:latest
+    container_name: sicp-n8n-automation
+    restart: always
+    ports:
+      - "5678:5678"
+    environment:
+      - N8N_HOST=0.0.0.0
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=http
+      - NODE_ENV=production
+      - WEBHOOK_URL=http://localhost:5678/
+      - GENERIC_TIMEZONE=America/Caracas
+      - N8N_DEFAULT_BINARY_DATA_MODE=filesystem
+    volumes:
+      - n8n_data:/home/node/.n8n
+    networks:
+      - sicp-network
+
+networks:
+  sicp-network:
+    driver: bridge
+
+volumes:
+  n8n_data:
+    driver: local

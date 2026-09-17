@@ -20,7 +20,7 @@ export default function PreinscripcionPage() {
   const router = useRouter();
   const [tutorCI, setTutorCI] = useState('18542991');
   const [tutorNombre, setTutorNombre] = useState('María Elena Delgado');
-  const [userEmail, setUserEmail] = useState('maria.delgado@email.com');
+  const [userEmail, setUserEmail] = useState('maria.delgado@gmail.com');
 
   const [tieneCedulaPropia, setTieneCedulaPropia] = useState(false);
   const [cedulaAlumno, setCedulaAlumno] = useState('');
@@ -38,10 +38,10 @@ export default function PreinscripcionPage() {
   const [error, setError] = useState<string | null>(null);
   const [guardado, setGuardado] = useState(false);
   const [cedulaAsignada, setCedulaAsignada] = useState('');
-  const [tasaBCV, setTasaBCV] = useState(804.81);
+  const [tasaBCV, setTasaBCV] = useState(832.49);
   const arancelUSD = 50.00;
 
-  // Calculate student age in years
+  // Calcular la edad del estudiante en años
   const calcularEdad = (fecha: string) => {
     if (!fecha) return null;
     const nacimiento = new Date(fecha);
@@ -57,7 +57,7 @@ export default function PreinscripcionPage() {
   const edadEstudiante = calcularEdad(formData.fechaNacimiento);
 
   useEffect(() => {
-    // Fetch live rate
+    // Obtener tasa de cambio oficial en vivo
     fetch('/api/tasa')
       .then(r => r.json())
       .then(data => {
@@ -143,7 +143,15 @@ export default function PreinscripcionPage() {
     setCedulaAsignada(nuevaCedula);
 
     if (typeof window !== 'undefined') {
-      const storageKey = `representados_${userEmail}`;
+      const session = localStorage.getItem('sicp_session');
+      let activeEmail = userEmail.trim().toLowerCase();
+      if (session) {
+        try {
+          const parsed = JSON.parse(session);
+          if (parsed.email) activeEmail = parsed.email.trim().toLowerCase();
+        } catch {}
+      }
+      const storageKey = `representados_${activeEmail}`;
       const existing = localStorage.getItem(storageKey);
       let list = [];
       if (existing) {
@@ -166,9 +174,7 @@ export default function PreinscripcionPage() {
       };
       list.push(newStudent);
       localStorage.setItem(storageKey, JSON.stringify(list));
-      // Also persist to Maria Delgado demo backup if applicable
-      if (userEmail.toLowerCase().includes('maria')) {
-        localStorage.setItem('representados_maria.delgado@email.com', JSON.stringify(list));
+      if (activeEmail === 'maria.delgado@gmail.com') {
         localStorage.setItem('representados_maria.delgado@gmail.com', JSON.stringify(list));
       }
     }

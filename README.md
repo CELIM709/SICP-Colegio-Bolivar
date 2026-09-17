@@ -30,7 +30,7 @@ La pantalla de inicio de sesión (`/login`) cuenta con botones de acceso rápido
 
 | Rol | Correo Electrónico | Contraseña | Acceso / Funciones |
 | :--- | :--- | :--- | :--- |
-| **Representante** | `maria.delgado@email.com` | `demo1234` | Portal de pagos, preinscripciones y solvencias. |
+| **Representante** | `maria.delgado@gmail.com` | `demo1234` | Portal de pagos, preinscripciones y solvencias. |
 | **Administrador** | `admin@colegiobolivar.edu.ve` | `admin1234` | Panel de conciliación de pagos y configuración. |
 
 ---

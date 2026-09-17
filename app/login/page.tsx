@@ -19,6 +19,7 @@ import {
   CreditCard,
   KeyRound
 } from 'lucide-react';
+import { validarCorreoElectronico } from '@/lib/validaciones';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -29,11 +30,11 @@ export default function LoginPage() {
   const [demoLoaded, setDemoLoaded] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(true);
-  const [tasaLive, setTasaLive] = useState(804.81);
+  const [tasaLive, setTasaLive] = useState(832.49);
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
-  // Initialize DB and fetch live rate
+  // Inicializar base de datos y obtener tasa de cambio en vivo
   useEffect(() => {
     fetch('/api/tasa')
       .then(r => r.json())
@@ -42,7 +43,7 @@ export default function LoginPage() {
       })
       .catch(() => {});
 
-    // Ensure default demo accounts exist in sicp_users_db
+    // Asegurar que las cuentas demo predeterminadas existan en sicp_users_db
     if (typeof window !== 'undefined') {
       let usersDb: any[] = [];
       const stored = localStorage.getItem('sicp_users_db');
@@ -50,9 +51,23 @@ export default function LoginPage() {
         try { usersDb = JSON.parse(stored); } catch {}
       }
 
+      // Migrar registros anteriores de admin a Prof. Celimar Rojas
+      usersDb = usersDb.map((u: any) => {
+        if (u.email === 'admin@colegiobolivar.edu.ve' || u.nombre?.includes('Carmen') || u.rol === 'ADMINISTRADOR') {
+          return {
+            ...u,
+            email: 'admin@colegiobolivar.edu.ve',
+            nombre: 'Prof. Celimar Rojas',
+            cargo: 'Secretaría General y Control de Estudios',
+            rol: 'ADMINISTRADOR'
+          };
+        }
+        return u;
+      });
+
       const defaultAccounts = [
         {
-          email: 'maria.delgado@email.com',
+          email: 'maria.delgado@gmail.com',
           password: 'demo1234',
           nombre: 'María Elena Delgado',
           cedula: '18542991',
@@ -60,9 +75,17 @@ export default function LoginPage() {
           rol: 'REPRESENTANTE'
         },
         {
+          email: 'celimrrojas@gmail.com',
+          password: 'demo1234',
+          nombre: 'Celimar Rojas',
+          cedula: '24665678',
+          telefono: '04121234567',
+          rol: 'REPRESENTANTE'
+        },
+        {
           email: 'admin@colegiobolivar.edu.ve',
           password: 'admin1234',
-          nombre: 'Prof. Carmen Silva',
+          nombre: 'Prof. Celimar Rojas',
           cedula: '12345678',
           telefono: '04149998877',
           rol: 'ADMINISTRADOR',
@@ -71,14 +94,30 @@ export default function LoginPage() {
       ];
 
       defaultAccounts.forEach(def => {
-        if (!usersDb.some((u: any) => u.email === def.email)) {
+        const idx = usersDb.findIndex((u: any) => u.email === def.email);
+        if (idx === -1) {
           usersDb.push(def);
+        } else {
+          usersDb[idx] = { ...usersDb[idx], ...def };
         }
       });
 
       localStorage.setItem('sicp_users_db', JSON.stringify(usersDb));
 
-      // Ensure Maria Delgado's demo students always exist in localStorage
+      // Sanitizar sesión activa si corresponde
+      const session = localStorage.getItem('sicp_session');
+      if (session) {
+        try {
+          const parsed = JSON.parse(session);
+          if (parsed.nombre?.includes('Carmen') || parsed.email === 'admin@colegiobolivar.edu.ve') {
+            parsed.nombre = 'Prof. Celimar Rojas';
+            parsed.cargo = 'Secretaría General y Control de Estudios';
+            localStorage.setItem('sicp_session', JSON.stringify(parsed));
+          }
+        } catch {}
+      }
+
+      // Asegurar que los representados de prueba de María Delgado siempre existan en localStorage
       const defaultDemoStudents = [
         {
           id: 'e-1',
@@ -104,16 +143,32 @@ export default function LoginPage() {
         }
       ];
 
-      if (!localStorage.getItem('representados_maria.delgado@email.com') || localStorage.getItem('representados_maria.delgado@email.com') === '[]') {
-        localStorage.setItem('representados_maria.delgado@email.com', JSON.stringify(defaultDemoStudents));
-      }
       if (!localStorage.getItem('representados_maria.delgado@gmail.com') || localStorage.getItem('representados_maria.delgado@gmail.com') === '[]') {
         localStorage.setItem('representados_maria.delgado@gmail.com', JSON.stringify(defaultDemoStudents));
+      }
+
+      // Asegurar que Lucas Valentino Rojas Franco siempre exista para Celimar Rojas
+      const defaultLucas = [
+        {
+          id: 'est-lucas-rojas',
+          nombres: 'Lucas Valentino',
+          apellidos: 'Rojas Franco',
+          cedulaEscolar: '16-24665678-01',
+          fechaNacimiento: '14/05/2016',
+          nivel: 'Educación Primaria',
+          grado: '4to Grado Educación Primaria',
+          estado: 'SOLVENTE',
+          arancel: 50.00
+        }
+      ];
+
+      if (!localStorage.getItem('representados_celimrrojas@gmail.com') || localStorage.getItem('representados_celimrrojas@gmail.com') === '[]') {
+        localStorage.setItem('representados_celimrrojas@gmail.com', JSON.stringify(defaultLucas));
       }
     }
   }, []);
 
-  // Dynamic Animated Particle Canvas Background
+  // Fondo animado interactivo con partículas dinámicas en Canvas
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -236,7 +291,14 @@ export default function LoginPage() {
         return;
       }
 
-      // Check in persistent Users DB
+      const emailVal = validarCorreoElectronico(emailClean);
+      if (!emailVal.valido) {
+        setError(emailVal.error || 'Correo electrónico inválido.');
+        setLoading(false);
+        return;
+      }
+
+      // Verificar en la base de datos de usuarios persistente
       let usersDb: any[] = [];
       const stored = localStorage.getItem('sicp_users_db');
       if (stored) {
@@ -251,19 +313,19 @@ export default function LoginPage() {
         return;
       }
 
-      // Verify Password
+      // Verificar contraseña
       if (userRecord.password !== passInput) {
         setError('Contraseña incorrecta. Por favor verifica tus credenciales.');
         setLoading(false);
         return;
       }
 
-      // Verify Role
+      // Verificar rol
       if (userRecord.rol !== rol) {
         setRol(userRecord.rol);
       }
 
-      // Set valid session with all fields
+      // Establecer sesión válida con todos los campos
       localStorage.setItem('sicp_session', JSON.stringify({
         rol: userRecord.rol,
         email: userRecord.email,
@@ -273,8 +335,8 @@ export default function LoginPage() {
         cargo: userRecord.cargo || (userRecord.rol === 'ADMINISTRADOR' ? 'Personal Administrativo' : undefined)
       }));
 
-      // If Representative, ensure their student list is loaded
-      if (userRecord.rol === 'REPRESENTANTE') {
+      // Si es la cuenta demo de María Delgado, asegurar que sus representados estén cargados
+      if (userRecord.rol === 'REPRESENTANTE' && userRecord.email.toLowerCase() === 'maria.delgado@gmail.com') {
         const defaultDemoStudents = [
           {
             id: 'e-1',
@@ -305,6 +367,27 @@ export default function LoginPage() {
         }
       }
 
+      // Si es la cuenta de Celimar Rojas, asegurar que Lucas esté cargado
+      if (userRecord.rol === 'REPRESENTANTE' && (userRecord.email.toLowerCase().includes('celim') || userRecord.nombre.toLowerCase().includes('celimar'))) {
+        const defaultLucas = [
+          {
+            id: 'est-lucas-rojas',
+            nombres: 'Lucas Valentino',
+            apellidos: 'Rojas Franco',
+            cedulaEscolar: '16-24665678-01',
+            fechaNacimiento: '14/05/2016',
+            nivel: 'Educación Primaria',
+            grado: '4to Grado Educación Primaria',
+            estado: 'SOLVENTE',
+            arancel: 50.00
+          }
+        ];
+        const existing = localStorage.getItem(`representados_${userRecord.email}`);
+        if (!existing || existing === '[]') {
+          localStorage.setItem(`representados_${userRecord.email}`, JSON.stringify(defaultLucas));
+        }
+      }
+
       if (userRecord.rol === 'ADMINISTRADOR') {
         router.push('/admin');
       } else {
@@ -325,11 +408,11 @@ export default function LoginPage() {
       setRol('ADMINISTRADOR');
       setDemoLoaded('Datos de Administrador cargados. Presiona "Iniciar Sesión".');
     } else {
-      setEmail('maria.delgado@email.com');
+      setEmail('maria.delgado@gmail.com');
       setPassword('demo1234');
       setRol('REPRESENTANTE');
       setDemoLoaded('Datos de Representante cargados. Presiona "Iniciar Sesión".');
-      // Ensure Maria's students are ready
+      // Asegurar que los alumnos de María estén listos
       const defaultDemoStudents = [
         {
           id: 'e-1',
@@ -354,7 +437,6 @@ export default function LoginPage() {
           arancel: 50.00
         }
       ];
-      localStorage.setItem('representados_maria.delgado@email.com', JSON.stringify(defaultDemoStudents));
       localStorage.setItem('representados_maria.delgado@gmail.com', JSON.stringify(defaultDemoStudents));
     }
   };
@@ -363,13 +445,13 @@ export default function LoginPage() {
     <div className={`min-h-screen relative overflow-hidden flex flex-col items-center justify-center p-4 sm:p-6 lg:p-10 font-sans transition-colors duration-300 ${
       isDarkMode ? 'bg-slate-950 text-slate-100' : 'bg-slate-50 text-slate-900'
     }`}>
-      {/* HTML5 Interactive Dynamic Particle Constellation Canvas */}
+      {/* Lienzo Canvas HTML5 interactivo con constelación dinámica de partículas */}
       <canvas
         ref={canvasRef}
         className="absolute inset-0 w-full h-full pointer-events-none z-0"
       />
 
-      {/* Top Floating Bar with Theme Toggle */}
+      {/* Barra superior flotante con selector de tema claro / oscuro */}
       <div className="w-full max-w-6xl flex items-center justify-between z-30 mb-4 px-2">
         <Link 
           href="/" 
@@ -396,13 +478,13 @@ export default function LoginPage() {
         </button>
       </div>
 
-      {/* Main Container - Responsive 2 Columns */}
+      {/* Contenedor Principal - 2 Columnas Responsivas */}
       <div className="relative z-10 max-w-6xl w-full grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center my-auto">
         
-        {/* Left Column: Showcase & Information Cards (STATIC) */}
+        {/* Columna Izquierda: Presentación Institucional y Tarjetas Informativas */}
         <div className="lg:col-span-7 space-y-6 text-center lg:text-left">
           
-          {/* Institution Header with Real Logo */}
+          {/* Encabezado Institucional con Escudo Oficial */}
           <div className="space-y-4">
             <div className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/25 text-emerald-400 text-xs font-bold shadow-sm">
               <Sparkles className="w-4 h-4" />
@@ -429,7 +511,7 @@ export default function LoginPage() {
             </p>
           </div>
 
-          {/* Feature Showcase Highlights (3 Static Cards) */}
+          {/* Tarjetas de Características Destacadas */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 pt-2">
             
             <div className={`p-4 rounded-2xl border transition-all ${
@@ -478,7 +560,7 @@ export default function LoginPage() {
 
         </div>
 
-        {/* Right Column: Authentication Card (STATIC POSITION) */}
+        {/* Columna Derecha: Formulario de Autenticación */}
         <div className="lg:col-span-5 w-full">
           <div className={`backdrop-blur-xl border rounded-3xl p-6 sm:p-8 shadow-2xl space-y-5 transition-all ${
             isDarkMode 
@@ -486,7 +568,7 @@ export default function LoginPage() {
               : 'bg-white/95 border-slate-200 text-slate-900 shadow-slate-200'
           }`}>
             
-            {/* Header Form */}
+            {/* Encabezado del Formulario */}
             <div className="text-center sm:text-left flex items-center justify-between">
               <div>
                 <h2 className="text-xl font-bold tracking-tight">Acceso al Sistema</h2>
@@ -499,7 +581,7 @@ export default function LoginPage() {
               </div>
             </div>
 
-            {/* Quick Demo Pre-fill Box */}
+            {/* Caja de Accesos Rápidos Demo */}
             <div className={`p-3.5 rounded-2xl border space-y-2.5 ${
               isDarkMode ? 'bg-slate-950/70 border-emerald-500/30' : 'bg-emerald-50/80 border-emerald-300'
             }`}>
@@ -548,7 +630,7 @@ export default function LoginPage() {
               )}
             </div>
 
-            {/* Role Switcher */}
+            {/* Selector de Rol */}
             <div className={`flex rounded-xl p-1 border ${
               isDarkMode ? 'bg-slate-950 border-slate-800' : 'bg-slate-100 border-slate-300'
             }`}>

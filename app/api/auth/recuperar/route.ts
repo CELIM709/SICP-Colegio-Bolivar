@@ -9,17 +9,17 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Faltan datos requeridos (email u OTP).' }, { status: 400 });
     }
 
-    const gmailUser = process.env.GMAIL_USER || process.env.SMTP_USER;
-    const gmailPass = process.env.GMAIL_APP_PASS || process.env.SMTP_PASS;
+    const gmailUser = process.env.EMAIL_USER || process.env.GMAIL_USER || process.env.SMTP_USER;
+    const gmailPass = process.env.EMAIL_PASS || process.env.GMAIL_APP_PASS || process.env.SMTP_PASS;
 
-    // If SMTP credentials are provided in .env.local, send real email via Gmail/SMTP
+    // Si se configuran credenciales SMTP en .env.local, enviar correo real mediante Gmail/SMTP
     if (gmailUser && gmailPass) {
       try {
         const transporter = nodemailer.createTransport({
           service: 'gmail',
           auth: {
             user: gmailUser,
-            pass: gmailPass,
+            pass: gmailPass.replace(/\s+/g, ''), // Asegurar sin espacios
           },
         });
 
@@ -60,7 +60,7 @@ export async function POST(req: Request) {
       }
     }
 
-    // Fallback: Simulated test mode
+    // Modo de contingencia/pruebas locales si no hay SMTP configurado
     return NextResponse.json({
       success: true,
       mode: 'SIMULATED',

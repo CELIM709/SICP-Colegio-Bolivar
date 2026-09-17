@@ -28,7 +28,7 @@ export default function PortalLayout({
   const [userInfo, setUserInfo] = useState({
     nombre: 'María Elena Delgado',
     cedula: '18.542.991',
-    email: 'maria.delgado@email.com'
+    email: 'maria.delgado@gmail.com'
   });
 
   useEffect(() => {
@@ -40,7 +40,7 @@ export default function PortalLayout({
           setUserInfo({
             nombre: parsed.nombre || 'María Elena Delgado',
             cedula: parsed.cedula || '18.542.991',
-            email: parsed.email || 'maria.delgado@email.com'
+            email: parsed.email || 'maria.delgado@gmail.com'
           });
         } catch {}
       }
@@ -65,7 +65,7 @@ export default function PortalLayout({
     <div className={`min-h-screen flex flex-col font-sans transition-colors duration-300 ${
       isDarkMode ? 'bg-slate-950 text-slate-100' : 'bg-slate-50 text-slate-900'
     }`}>
-      {/* Header */}
+      {/* Encabezado Superior */}
       <header className={`backdrop-blur-md border-b sticky top-0 z-50 transition-colors ${
         isDarkMode ? 'bg-slate-900/90 border-slate-800' : 'bg-white/95 border-slate-200 shadow-sm'
       }`}>
@@ -75,18 +75,18 @@ export default function PortalLayout({
               <img 
                 src="/logo-colegio.png" 
                 alt="Logo Colegio Bolívar" 
-                className="w-12 h-12 object-contain drop-shadow-md shrink-0" 
+                className="w-14 h-14 object-contain drop-shadow-md shrink-0" 
               />
-              <div>
+              <div className="flex items-center gap-2">
                 <span className="font-extrabold text-base tracking-tight">SICP</span>
-                <span className="text-[10px] text-emerald-400 font-bold ml-1.5 px-1.5 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/20">
+                <span className="text-[10px] text-emerald-400 font-bold px-2 py-0.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
                   PORTAL REPRESENTANTE
                 </span>
               </div>
             </Link>
           </div>
 
-          {/* Desktop Nav */}
+          {/* Navegación para Escritorio */}
           <nav className={`hidden md:flex items-center gap-1.5 p-1.5 rounded-2xl border ${
             isDarkMode ? 'bg-slate-950/80 border-slate-800' : 'bg-slate-100 border-slate-200'
           }`}>
@@ -110,7 +110,7 @@ export default function PortalLayout({
             })}
           </nav>
 
-          {/* User profile, Theme Toggle & logout */}
+          {/* Perfil de usuario, selector de tema y botón de cierre de sesión */}
           <div className="hidden md:flex items-center gap-3">
             <button
               type="button"
@@ -142,7 +142,7 @@ export default function PortalLayout({
             </button>
           </div>
 
-          {/* Mobile menu trigger */}
+          {/* Botón de Menú Móvil */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             className={`md:hidden p-2 rounded-xl border ${
@@ -153,7 +153,7 @@ export default function PortalLayout({
           </button>
         </div>
 
-        {/* Mobile Navigation Drawer */}
+        {/* Menú Desplegable Móvil */}
         {mobileMenuOpen && (
           <div className={`md:hidden border-b px-4 pt-2 pb-4 space-y-2 ${
             isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'

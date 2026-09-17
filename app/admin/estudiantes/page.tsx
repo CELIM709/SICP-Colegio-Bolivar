@@ -192,13 +192,13 @@ export default function AdminEstudiantesPage() {
               Algoritmo de Cédula Escolar Automática (Estándar MPPE)
             </h3>
             <p className="text-xs text-slate-300 mt-1 leading-relaxed">
-              La Cédula Escolar se genera por trigger SQL: <code className="text-emerald-300 bg-slate-900 px-1.5 py-0.5 rounded font-mono font-bold">[Año Nac 2 dígitos]-[CI Representante]-[Correlativo 01..N]</code>.
+              La Cédula Escolar se calcula automáticamente mediante la siguiente fórmula: <code className="text-emerald-300 bg-slate-900 px-1.5 py-0.5 rounded font-mono font-bold">[Año Nac 2 dígitos]-[CI Representante]-[Correlativo 01..N]</code>.
               Ejemplo: Sofia Pérez nacida en 2018 con representante V-18542991 es asignada como <strong className="text-white font-mono">18-18542991-01</strong>.
             </p>
           </div>
         </div>
         <div className="bg-slate-900/80 border border-emerald-500/30 px-3 py-2 rounded-xl shrink-0 text-center">
-          <span className="text-[10px] text-slate-400 block uppercase font-bold">Garantía RLS</span>
+          <span className="text-[10px] text-slate-400 block uppercase font-bold">Cálculo Seguro</span>
           <span className="text-xs font-bold text-emerald-400">100% Automático</span>
         </div>
       </div>
