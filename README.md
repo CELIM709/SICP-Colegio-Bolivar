@@ -19,50 +19,50 @@
 
 El **SICP** es una plataforma tecnológica integral desarrollada para automatizar, blindar y agilizar la gestión de matrícula y cobranza bimonetaria en la **Unidad Educativa Colegio Simón Bolívar**. 
 
-El sistema resuelve la complejidad del contexto económico venezolano al sincronizarse en tiempo real con la tasa oficial del **Banco Central de Venezuela (BCV)**, procesar comprobantes bancarios mediante **Inteligencia Artificial (Gemini Flash OCR)**, permitir la **imputación de pagos 1 a N**, gestionar el **desistimiento y devolución de matrícula**, y emitir **constancias oficiales en PDF con membrete ministerial del MPPE, sellos y firmas institucionales**.
+El sistema resuelve la complejidad del contexto económico venezolano al sincronizarse en tiempo real con la tasa oficial del **Banco Central de Venezuela (BCV)**, procesar comprobantes bancarios mediante **Inteligencia Artificial (Gemini 3.6 Flash OCR)**, permitir la **imputación de pagos 1 a N**, gestionar el **desistimiento y devolución de matrícula**, y emitir **constancias oficiales en PDF con membrete ministerial del MPPE, sellos y firmas institucionales**.
 
 ---
 
 ## ✨ Funcionalidades Principales por Sprints
 
 ### 🚀 Sprint 1: Arquitectura Base, Cédula Escolar MPPE y Tasa BCV
-*   **Autenticación Bimonetaria y Roles:** Vistas diferenciadas para Representantes y Administradores con selector de Modo Claro / Modo Oscuro.
-*   **Generador Oficial de Cédula Escolar MPPE:** Algoritmo ministerial automático [Año Nac 2 dígitos]-[Cédula Representante]-[Correlativo 01..N].
-*   **Cotizador Oficial BCV en Vivo:** Consumo de la API oficial del Banco Central de Venezuela con caché inteligente y conmutación a modo de contingencia manual.
-*   **Recuperación Segura de Contraseña:** Generación de tokens OTP de 6 dígitos con expiración automática de 10 minutos.
+* **Autenticación Bimonetaria y Roles:** Vistas diferenciadas para Representantes y Administradores con selector de Modo Claro / Modo Oscuro.
+* **Generador Oficial de Cédula Escolar MPPE:** Algoritmo ministerial automático `[Año Nac 2 dígitos]-[Cédula Representante]-[Correlativo 01..N]`.
+* **Cotizador Oficial BCV en Vivo:** Consumo de la API oficial del Banco Central de Venezuela con caché inteligente y conmutación a modo de contingencia manual.
+* **Recuperación Segura de Contraseña:** Generación de tokens OTP de 6 dígitos con expiración automática de 10 minutos.
 
 ### 🧠 Sprint 2: IA Gemini Flash OCR, Conciliación 1:N y Mock Bancario
-*   **Extractor OCR con IA Gemini Flash:** Lectura automática y ultra-rápida de captures de Pago Móvil y Transferencias (detecta Banco, Referencia, Fecha y Monto en Bs.).
-*   **Conciliación e Imputación 1 a N:** Capacidad de abonar o liquidar aranceles de múltiples estudiantes con un único comprobante bancario.
-*   **Simulador / Mock Bancario:** Validación automática e instantánea contra extractos bancarios simulados (Banco de Venezuela / Banesco).
-*   **Webhooks n8n:** Disparo de eventos y notificaciones transaccionales por correo electrónico.
+* **Extractor OCR con IA Gemini 3.6 Flash:** Lectura automática y de alta precisión de captures de Pago Móvil y Transferencias (detecta Banco, Referencia, Fecha y Monto en Bs.).
+* **Conciliación e Imputación 1 a N:** Capacidad de abonar o liquidar aranceles de múltiples estudiantes con un único comprobante bancario.
+* **Simulador / Mock Bancario:** Validación automática e instantánea contra extractos bancarios simulados (Banco de Venezuela / Banesco).
+* **Webhooks n8n:** Disparo de eventos y notificaciones transaccionales por correo electrónico.
 
 ### 🏛️ Sprint 3: Módulo de Devoluciones y Documentos Oficiales en PDF
-*   **Gestión de Desistimiento y Devoluciones:** Cancelación formal de cupos y solicitud de reintegro bancario (Pago Móvil o Transferencia de 20 dígitos).
-*   **Panel Administrativo de Liquidación:** Auditoría, aprobación, registro de transferencia emitida y cierre contable de reintegros.
-*   **Motor de Generación PDF (1 Página Exacta):**
-    *   *Constancia de Inscripción y Solvencia*.
-    *   *Acta Oficial de Desistimiento y Devolución*.
-    *   *Acta de Liquidación y Finiquito Contable*.
-    *   Todas con Escudo Institucional, Membrete MPPE Estado Bolívar, Número de Control correlativo, Sello Húmedo y Firma de la Prof. Celimar Rojas.
+* **Gestión de Desistimiento y Devoluciones:** Cancelación formal de cupos y solicitud de reintegro bancario (Pago Móvil o Transferencia de 20 dígitos).
+* **Panel Administrativo de Liquidación:** Auditoría, aprobación, registro de transferencia emitida y cierre contable de reintegros.
+* **Motor de Generación PDF (1 Página Exacta):**
+  * *Constancia de Inscripción y Solvencia*.
+  * *Acta Oficial de Desistimiento y Devolución*.
+  * *Acta de Liquidación y Finiquito Contable*.
+  * Todas con Escudo Institucional, Membrete MPPE Estado Bolívar, Número de Control correlativo, Sello Húmedo y Firma de la Prof. Celimar Rojas.
 
 ---
 
 ## 👥 Credenciales de Acceso Demo
 
-La pantalla de inicio de sesión (/login) incluye botones de carga rápida con un solo clic:
+La pantalla de inicio de sesión (`/login`) incluye botones de carga rápida con un solo clic:
 
 | Rol | Correo Electrónico | Contraseña | Perfil y Alcance |
 | :--- | :--- | :--- | :--- |
-| **👨‍👩‍👧 Representante** | maria.delgado@gmail.com | demo1234 | Portal de pagos, 2 representados, solvencias y devoluciones. |
-| **👨‍👩‍👧 Representante** | celimrrojas@gmail.com | demo1234 | Portal de pagos con representado Lucas Valentino Rojas. |
-| **🛡️ Administrador** | dmin@colegiobolivar.edu.ve | dmin1234 | **Prof. Celimar Rojas** (Control de Estudios, Auditoría y Devoluciones). |
+| **👨‍👩‍👧 Representante** | `maria.delgado@gmail.com` | `demo1234` | Portal de pagos, 2 representados (Sofia y Mateo), solvencias y devoluciones. |
+| **👨‍👩‍👧 Representante** | `celimrrojas@gmail.com` | `demo1234` | Portal de pagos con representado Lucas Valentino Rojas Franco. |
+| **🛡️ Administrador** | `admin@colegiobolivar.edu.ve` | `admin1234` | **Prof. Celimar Rojas** (Control de Estudios, Auditoría y Devoluciones). |
 
 ---
 
 ## 📂 Estructura del Código Fuente
 
-`	ext
+```text
 sicp-app/
 ├── app/                           # Arquitectura Next.js 14 App Router
 │   ├── page.tsx                   # Landing Page con Cotizador Oficial en Vivo
@@ -94,56 +94,59 @@ sicp-app/
 │   └── validaciones.ts            # Validaciones de cédula, correo y teléfonos
 ├── docker-compose.yml             # Despliegue en contenedor Docker para n8n
 ├── n8n/                           # Documentación y workflows de automatización
-├── supabase/                      # Script DDL oficial de PostgreSQL (schema.sql)
+│   └── workflow_sicp.json         # Flujo exportado de n8n para importar
+├── supabase/                      # Script DDL oficial de PostgreSQL
+│   └── schema.sql                 # Modelo relacional, llaves foráneas y RLS
 └── package.json                   # Dependencias y scripts del proyecto
-`
+```
 
 ---
 
 ## 🛠️ Tecnologías y Arquitectura
 
-*   **Frontend & Backend:** Next.js 14 (React 18, TypeScript, App Router).
-*   **Estilos y UI:** Tailwind CSS, Lucide Icons, Canvas HTML5 interactivo.
-*   **Inteligencia Artificial:** Google Gemini 3.6 Flash Vision (Extracción estructurada en JSON de comprobantes bancarios).
-*   **Automatización:** n8n desplegado en contenedor **Docker**.
-*   **Base de Datos:** PostgreSQL Relacional (Supabase) con integridad referencial e índices.
-*   **Integración Financiera:** API del Banco Central de Venezuela (BCV).
-*   **Impresión y Exportación:** Plantillas CSS Puras optimizadas para PDF en 1 página.
+* **Frontend & Backend:** Next.js 14 (React 18, TypeScript, App Router).
+* **Estilos y UI:** Tailwind CSS, Lucide Icons, Canvas HTML5 interactivo.
+* **Inteligencia Artificial:** Google Gemini 3.6 Flash Vision (Extracción estructurada en JSON de comprobantes bancarios).
+* **Automatización:** n8n desplegado en contenedor **Docker**.
+* **Base de Datos:** PostgreSQL Relacional (Supabase) con integridad referencial e índices.
+* **Integración Financiera:** API del Banco Central de Venezuela (BCV).
+* **Impresión y Exportación:** Plantillas CSS Puras optimizadas para PDF en 1 página.
 
 ---
 
 ## 🚀 Guía de Instalación y Ejecución Local
 
 ### 1. Clonar el Repositorio
-\\\ash
+```bash
 git clone https://github.com/celimrrojas/sicp-colegio-bolivar.git
 cd sicp-colegio-bolivar
-\\\
+```
 
 ### 2. Instalar Dependencias
-\\\ash
+```bash
 npm install
-\\\
+```
 
 ### 3. Configurar Variables de Entorno
-Crea un archivo .env.local en la raíz con tus llaves:
-\\\nv
+Crea un archivo `.env.local` en la raíz con tus llaves:
+```env
 # API de Google Gemini para OCR
 GEMINI_API_KEY=tu_api_key_aqui
 
 # URL de Webhook n8n (Opcional para correos)
 N8N_WEBHOOK_URL=http://localhost:5678/webhook/sicp-notificaciones
-\\\
+```
 
 ### 4. (Opcional) Levantar Contenedor de n8n con Docker
-\\\ash
+```bash
 docker-compose up -d
-\\\
+```
 
 ### 5. Iniciar la Aplicación en Modo Desarrollo
-\\\ash
+```bash
 npm run dev
-\\\
+```
+
 Abre tu navegador en: 👉 **[http://localhost:3000](http://localhost:3000)**
 
 ---
