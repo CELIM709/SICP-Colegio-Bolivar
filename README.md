@@ -3,7 +3,7 @@
 ![Next.js](https://img.shields.io/badge/Next.js-14.2-black?style=for-the-badge&logo=next.js)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue?style=for-the-badge&logo=typescript)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.4-38B2AC?style=for-the-badge&logo=tailwind-css)
-![Google Gemini](https://img.shields.io/badge/Google_Gemini-Flash_1.5_OCR-8E75B2?style=for-the-badge&logo=google)
+![Google Gemini](https://img.shields.io/badge/Google_Gemini-Flash_3.6_OCR-8E75B2?style=for-the-badge&logo=google)
 ![Docker](https://img.shields.io/badge/Docker-n8n_Automation-2496ED?style=for-the-badge&logo=docker)
 
 **Carrera:** Ingeniería en Informática  
@@ -82,7 +82,7 @@ sicp-app/
 │   │   └── configuracion/         # Control de período escolar y tasa de contingencia
 │   └── api/                       # Route Handlers y endpoints del backend
 │       ├── tasa/                  # Consulta y caché de tasa oficial BCV
-│       ├── extraer-comprobante/   # Servicio OCR con Google Gemini 1.5 Flash
+│       ├── extraer-comprobante/   # Servicio OCR con Google Gemini 3.6 Flash
 │       ├── banco/conciliar/       # Mock API de conciliación bancaria
 │       ├── webhook/n8n/           # Disparador de eventos hacia n8n
 │       └── auth/recuperar/        # Generador de códigos OTP de recuperación
@@ -94,6 +94,7 @@ sicp-app/
 │   └── validaciones.ts            # Validaciones de cédula, correo y teléfonos
 ├── docker-compose.yml             # Despliegue en contenedor Docker para n8n
 ├── n8n/                           # Documentación y workflows de automatización
+├── supabase/                      # Script DDL oficial de PostgreSQL (schema.sql)
 └── package.json                   # Dependencias y scripts del proyecto
 `
 
@@ -103,8 +104,9 @@ sicp-app/
 
 *   **Frontend & Backend:** Next.js 14 (React 18, TypeScript, App Router).
 *   **Estilos y UI:** Tailwind CSS, Lucide Icons, Canvas HTML5 interactivo.
-*   **Inteligencia Artificial:** Google Gemini 1.5 Flash (Visión y Extracción de Datos).
+*   **Inteligencia Artificial:** Google Gemini 3.6 Flash Vision (Extracción estructurada en JSON de comprobantes bancarios).
 *   **Automatización:** n8n desplegado en contenedor **Docker**.
+*   **Base de Datos:** PostgreSQL Relacional (Supabase) con integridad referencial e índices.
 *   **Integración Financiera:** API del Banco Central de Venezuela (BCV).
 *   **Impresión y Exportación:** Plantillas CSS Puras optimizadas para PDF en 1 página.
 
