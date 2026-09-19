@@ -228,7 +228,7 @@ export default function PagarArancelPage() {
 
     if (typeof window !== 'undefined') {
       const session = localStorage.getItem('sicp_session');
-      let email = 'maria.delgado@gmail.com';
+      let email = '';
       let sessionCI = '';
       let sessionTutor = '';
       if (session) {
@@ -246,25 +246,17 @@ export default function PagarArancelPage() {
         } catch {}
       }
 
-      // Lista base demo para María Delgado
-      const defaultList = [
-        {
-          id: 'e-1',
-          nombres: 'Sofia Valentina',
-          apellidos: 'Pérez Delgado',
-          cedulaEscolar: '18-18542991-01',
-          grado: '1er Grado Sección A',
-          arancel: 50.00
-        },
-        {
-          id: 'e-2',
-          nombres: 'Mateo Alejandro',
-          apellidos: 'Pérez Delgado',
-          cedulaEscolar: '22-18542991-02',
-          grado: 'Maternal',
-          arancel: 50.00
-        }
-      ];
+      // Si no hay sesión activa definida, inicializar con Celimar Rojas por defecto
+      if (!email) {
+        email = 'celimrrojas@gmail.com';
+        sessionTutor = 'Celimar Rojas';
+        sessionCI = '24665678';
+        setTutorNombre('Celimar Rojas');
+        setTutorCI('24.665.678');
+      }
+
+      const isCelimar = email.includes('celim') || email.includes('rojas') || sessionTutor.toLowerCase().includes('celimar') || sessionCI.includes('24665678');
+      const isMaria = email === 'maria.delgado@gmail.com';
 
       // Consultar pagos existentes
       let allPagos: any[] = [];
@@ -284,74 +276,19 @@ export default function PagarArancelPage() {
         try {
           const parsedList = JSON.parse(userList);
           if (Array.isArray(parsedList) && parsedList.length > 0) {
-            rawList = parsedList;
+            if (isCelimar) {
+              // Asegurar que si es Celimar NUNCA contenga los de María Delgado
+              rawList = parsedList.filter((est: any) => !est.apellidos?.toLowerCase().includes('delgado'));
+            } else {
+              rawList = parsedList;
+            }
           }
         } catch {}
       }
 
-      // Si no tiene lista directa y no es Maria Delgado, buscar en historial o pagos
-      if (rawList.length === 0 && email !== 'maria.delgado@gmail.com') {
-        for (let i = 0; i < localStorage.length; i++) {
-          const key = localStorage.key(i);
-          if (key && key.startsWith('representados_')) {
-            try {
-              const item = JSON.parse(localStorage.getItem(key) || '[]');
-              if (Array.isArray(item)) {
-                const matching = item.filter((est: any) => 
-                  est.nombres?.toLowerCase().includes('lucas') ||
-                  est.apellidos?.toLowerCase().includes('rojas') ||
-                  (sessionCI && est.cedulaEscolar?.includes(sessionCI))
-                );
-                if (matching.length > 0) {
-                  rawList = matching;
-                  localStorage.setItem(`representados_${email}`, JSON.stringify(matching));
-                  break;
-                }
-              }
-            } catch {}
-          }
-        }
-
-        if (rawList.length === 0) {
-          const pagosDb = localStorage.getItem('sicp_pagos_db');
-          if (pagosDb) {
-            try {
-              const parsedPagos = JSON.parse(pagosDb);
-              if (Array.isArray(parsedPagos)) {
-                const misPagos = parsedPagos.filter((p: any) => 
-                  (sessionCI && p.ciRepresentante?.includes(sessionCI)) ||
-                  p.representante?.toLowerCase().includes(sessionTutor.toLowerCase()) ||
-                  p.representante?.toLowerCase().includes('celimar')
-                );
-                const recovered: any[] = [];
-                misPagos.forEach((p: any) => {
-                  if (p.imputaciones && Array.isArray(p.imputaciones)) {
-                    p.imputaciones.forEach((imp: any) => {
-                      if (!recovered.some(s => s.cedulaEscolar === imp.cedulaEscolar)) {
-                        recovered.push({
-                          id: `est-${Date.now()}-${recovered.length}`,
-                          nombres: imp.estudiante?.includes('Lucas') ? 'Lucas Valentino' : imp.estudiante?.split(' ')[0] || 'Estudiante',
-                          apellidos: imp.estudiante?.includes('Rojas') ? 'Rojas Franco' : imp.estudiante?.split(' ').slice(1).join(' ') || 'Rojas',
-                          cedulaEscolar: imp.cedulaEscolar || 'V-34665678',
-                          grado: imp.grado || '4to Grado Educación Primaria',
-                          arancel: 50.00,
-                          estado: 'SOLVENTE'
-                        });
-                      }
-                    });
-                  }
-                });
-                if (recovered.length > 0) {
-                  rawList = recovered;
-                  localStorage.setItem(`representados_${email}`, JSON.stringify(recovered));
-                }
-              }
-            } catch {}
-          }
-        }
-
-        if (rawList.length === 0 && (email.includes('celim') || email.includes('rojas') || sessionTutor.toLowerCase().includes('celimar'))) {
-          const defaultLucas = [
+      if (rawList.length === 0) {
+        if (isCelimar) {
+          rawList = [
             {
               id: 'est-lucas-rojas',
               nombres: 'Lucas Valentino',
@@ -362,11 +299,28 @@ export default function PagarArancelPage() {
               estado: 'SOLVENTE'
             }
           ];
-          rawList = defaultLucas;
-          localStorage.setItem(`representados_${email}`, JSON.stringify(defaultLucas));
+          localStorage.setItem(`representados_${email}`, JSON.stringify(rawList));
+        } else if (isMaria) {
+          rawList = [
+            {
+              id: 'e-1',
+              nombres: 'Sofia Valentina',
+              apellidos: 'Pérez Delgado',
+              cedulaEscolar: '18-18542991-01',
+              grado: '1er Grado Sección A',
+              arancel: 50.00
+            },
+            {
+              id: 'e-2',
+              nombres: 'Mateo Alejandro',
+              apellidos: 'Pérez Delgado',
+              cedulaEscolar: '22-18542991-02',
+              grado: 'Maternal',
+              arancel: 50.00
+            }
+          ];
+          localStorage.setItem(`representados_${email}`, JSON.stringify(rawList));
         }
-      } else if (rawList.length === 0 && email === 'maria.delgado@gmail.com') {
-        rawList = defaultList;
       }
 
       // Cálculo dinámico de saldo y abonos por estudiante

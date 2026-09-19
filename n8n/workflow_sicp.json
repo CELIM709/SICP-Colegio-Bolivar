@@ -1,0 +1,149 @@
+{
+  "name": "SICP - Notificaciones Transaccionales Escolares",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "sicp-notificaciones",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "id": "webhook-node-1",
+      "name": "Webhook SICP",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [240, 300],
+      "webhookId": "sicp-notificaciones"
+    },
+    {
+      "parameters": {
+        "dataType": "string",
+        "value1": "={{ $json.body.evento }}",
+        "rules": {
+          "rules": [
+            {
+              "value2": "INSCRIPCION_CONFIRMADA",
+              "output": 0
+            },
+            {
+              "value2": "PAGO_RECHAZADO",
+              "output": 1
+            },
+            {
+              "value2": "RECUPERAR_PASSWORD",
+              "output": 2
+            },
+            {
+              "value2": "DEVOLUCION_SOLICITADA",
+              "output": 3
+            }
+          ]
+        }
+      },
+      "id": "switch-node-1",
+      "name": "Enrutador de Eventos",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 1,
+      "position": [480, 300]
+    },
+    {
+      "parameters": {
+        "fromEmail": "cobranzas@colegiobolivar.edu.ve",
+        "toEmail": "={{ $json.body.representante.email }}",
+        "subject": "✓ Confirmación de Inscripción - Colegio Simón Bolívar",
+        "html": "<h2>Constancia de Inscripción Emitida</h2><p>Estimado(a) {{ $json.body.representante.nombre }}, su pago ha sido verificado satisfactoriamente.</p>"
+      },
+      "id": "email-inscripcion",
+      "name": "Email Constancia Inscripción",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2,
+      "position": [760, 140]
+    },
+    {
+      "parameters": {
+        "fromEmail": "cobranzas@colegiobolivar.edu.ve",
+        "toEmail": "={{ $json.body.representante.email }}",
+        "subject": "⚠️ Notificación de Inconsistencia en Comprobante",
+        "html": "<h2>Comprobante Rechazado</h2><p>Estimado(a) {{ $json.body.representante.nombre }}, el comprobante Ref. {{ $json.body.pago.referencia }} presentó inconsistencias: {{ $json.body.pago.motivo }}.</p>"
+      },
+      "id": "email-rechazo",
+      "name": "Email Alerta Rechazo",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2,
+      "position": [760, 260]
+    },
+    {
+      "parameters": {
+        "fromEmail": "seguridad@colegiobolivar.edu.ve",
+        "toEmail": "={{ $json.body.usuario.email }}",
+        "subject": "🔐 Código de Seguridad OTP - Recuperación",
+        "html": "<h2>Código de Recuperación</h2><p>Su código de verificación temporal es: <strong>{{ $json.body.usuario.codigoOtp }}</strong> (Válido por 10 min).</p>"
+      },
+      "id": "email-otp",
+      "name": "Email Token OTP",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2,
+      "position": [760, 380]
+    },
+    {
+      "parameters": {
+        "fromEmail": "administracion@colegiobolivar.edu.ve",
+        "toEmail": "={{ $json.body.representante.email }}",
+        "subject": "📋 Acta de Devolución Generada",
+        "html": "<h2>Solicitud de Reintegro Registrada</h2><p>Correlativo: {{ $json.body.devolucion.correlativo }}. Monto a liquidar: {{ $json.body.devolucion.montoBs }} Bs.</p>"
+      },
+      "id": "email-devolucion",
+      "name": "Email Acta Devolución",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2,
+      "position": [760, 500]
+    }
+  ],
+  "connections": {
+    "Webhook SICP": {
+      "main": [
+        [
+          {
+            "node": "Enrutador de Eventos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enrutador de Eventos": {
+      "main": [
+        [
+          {
+            "node": "Email Constancia Inscripción",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Email Alerta Rechazo",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Email Token OTP",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Email Acta Devolución",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {}
+}

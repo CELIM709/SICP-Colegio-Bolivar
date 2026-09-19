@@ -26,9 +26,9 @@ export default function PortalLayout({
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [userInfo, setUserInfo] = useState({
-    nombre: 'María Elena Delgado',
-    cedula: '18.542.991',
-    email: 'maria.delgado@gmail.com'
+    nombre: 'Celimar Rojas',
+    cedula: '24.665.678',
+    email: 'celimrrojas@gmail.com'
   });
 
   useEffect(() => {
@@ -38,9 +38,9 @@ export default function PortalLayout({
         try {
           const parsed = JSON.parse(session);
           setUserInfo({
-            nombre: parsed.nombre || 'María Elena Delgado',
-            cedula: parsed.cedula || '18.542.991',
-            email: parsed.email || 'maria.delgado@gmail.com'
+            nombre: parsed.nombre || 'Celimar Rojas',
+            cedula: parsed.cedula || '24.665.678',
+            email: parsed.email || 'celimrrojas@gmail.com'
           });
         } catch {}
       }

@@ -400,18 +400,38 @@ export default function LoginPage() {
     }
   };
 
-  const handleQuickDemo = (tipo: 'REPRESENTANTE' | 'ADMINISTRADOR') => {
+  const handleQuickDemo = (tipo: 'MARIA' | 'CELIMAR' | 'ADMINISTRADOR') => {
     setError('');
     if (tipo === 'ADMINISTRADOR') {
       setEmail('admin@colegiobolivar.edu.ve');
       setPassword('admin1234');
       setRol('ADMINISTRADOR');
       setDemoLoaded('Datos de Administrador cargados. Presiona "Iniciar Sesión".');
+    } else if (tipo === 'CELIMAR') {
+      setEmail('celimrrojas@gmail.com');
+      setPassword('demo1234');
+      setRol('REPRESENTANTE');
+      setDemoLoaded('Datos de Representante (Celimar Rojas) cargados.');
+      // Asegurar que Lucas Valentino esté listo para Celimar
+      const defaultLucas = [
+        {
+          id: 'est-lucas-rojas',
+          nombres: 'Lucas Valentino',
+          apellidos: 'Rojas Franco',
+          cedulaEscolar: '16-24665678-01',
+          fechaNacimiento: '14/05/2016',
+          nivel: 'Educación Primaria',
+          grado: '4to Grado Educación Primaria',
+          estado: 'SOLVENTE',
+          arancel: 50.00
+        }
+      ];
+      localStorage.setItem('representados_celimrrojas@gmail.com', JSON.stringify(defaultLucas));
     } else {
       setEmail('maria.delgado@gmail.com');
       setPassword('demo1234');
       setRol('REPRESENTANTE');
-      setDemoLoaded('Datos de Representante cargados. Presiona "Iniciar Sesión".');
+      setDemoLoaded('Datos de Representante (María Delgado) cargados.');
       // Asegurar que los alumnos de María estén listos
       const defaultDemoStudents = [
         {
@@ -597,28 +617,42 @@ export default function LoginPage() {
                 </span>
               </div>
 
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-3 gap-1.5">
                 <button
                   type="button"
-                  onClick={() => handleQuickDemo('REPRESENTANTE')}
-                  className={`px-3 py-2 rounded-xl text-xs font-bold border transition-all text-center cursor-pointer ${
+                  onClick={() => handleQuickDemo('MARIA')}
+                  className={`px-2 py-2 rounded-xl text-[11px] font-bold border transition-all text-center cursor-pointer ${
                     isDarkMode 
                       ? 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 border-emerald-500/30' 
                       : 'bg-emerald-100 hover:bg-emerald-200 text-emerald-900 border-emerald-300'
                   }`}
+                  title="Representante: María Delgado (Sofia y Mateo)"
                 >
-                  👨‍👩‍👧 Representante
+                  👩 María
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleQuickDemo('CELIMAR')}
+                  className={`px-2 py-2 rounded-xl text-[11px] font-bold border transition-all text-center cursor-pointer ${
+                    isDarkMode 
+                      ? 'bg-purple-500/10 hover:bg-purple-500/20 text-purple-300 border-purple-500/30' 
+                      : 'bg-purple-100 hover:bg-purple-200 text-purple-900 border-purple-300'
+                  }`}
+                  title="Representante: Celimar Rojas (Lucas Valentino)"
+                >
+                  👩‍👦 Celimar
                 </button>
                 <button
                   type="button"
                   onClick={() => handleQuickDemo('ADMINISTRADOR')}
-                  className={`px-3 py-2 rounded-xl text-xs font-bold border transition-all text-center cursor-pointer ${
+                  className={`px-2 py-2 rounded-xl text-[11px] font-bold border transition-all text-center cursor-pointer ${
                     isDarkMode 
                       ? 'bg-teal-500/10 hover:bg-teal-500/20 text-teal-300 border-teal-500/30' 
                       : 'bg-teal-100 hover:bg-teal-200 text-teal-900 border-teal-300'
                   }`}
+                  title="Administrador: Control de Estudios"
                 >
-                  🛡️ Administrador
+                  🛡️ Admin
                 </button>
               </div>
 
