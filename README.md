@@ -5,6 +5,9 @@
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.4-38B2AC?style=for-the-badge&logo=tailwind-css)
 ![Google Gemini](https://img.shields.io/badge/Google_Gemini-Flash_3.6_OCR-8E75B2?style=for-the-badge&logo=google)
 ![Docker](https://img.shields.io/badge/Docker-n8n_Automation-2496ED?style=for-the-badge&logo=docker)
+![Vercel](https://img.shields.io/badge/Vercel-Deploy_Live-black?style=for-the-badge&logo=vercel)
+
+> 🌐 **Enlace Público en Vivo (Deploy en Vercel):** [https://sicp-colegio-bolivar.vercel.app](https://sicp-colegio-bolivar.vercel.app)
 
 **Carrera:** Ingeniería en Informática  
 **Asignatura:** Ingeniería de Software I  
@@ -20,6 +23,16 @@
 El **SICP** es una plataforma tecnológica integral desarrollada para automatizar, blindar y agilizar la gestión de matrícula y cobranza bimonetaria en la **Unidad Educativa Colegio Simón Bolívar**. 
 
 El sistema resuelve la complejidad del contexto económico venezolano al sincronizarse en tiempo real con la tasa oficial del **Banco Central de Venezuela (BCV)**, procesar comprobantes bancarios mediante **Inteligencia Artificial (Gemini 3.6 Flash OCR)**, permitir la **imputación de pagos 1 a N**, gestionar el **desistimiento y devolución de matrícula**, y emitir **constancias oficiales en PDF con membrete ministerial del MPPE, sellos y firmas institucionales**.
+
+---
+
+## 🌐 Despliegue en Producción (Vercel)
+
+La plataforma cuenta con integración y despliegue continuo (CI/CD) conectado a GitHub y alojado en **Vercel**:
+
+* 🔗 **URL de Acceso:** [https://sicp-colegio-bolivar.vercel.app](https://sicp-colegio-bolivar.vercel.app)
+* ⚡ **Disponibilidad:** 24/7 con soporte Edge Network y modo de contingencia BCV.
+
 
 ---
 
