@@ -18,11 +18,17 @@ const BANCOS_VENEZUELA = [
   { codigo: '0172', nombre: '0172 - Bancamiga Banco Universal', keywords: ['bancamiga', 'pagoamigo'] },
   { codigo: '0191', nombre: '0191 - Banco Nacional de Crédito (BNC)', keywords: ['bnc', 'nacional de credito'] },
   { codigo: '0114', nombre: '0114 - Bancaribe', keywords: ['bancaribe', 'mi pago'] },
-  { codigo: '0163', nombre: '0163 - Banco del Tesoro', keywords: ['tesoro'] }
+  { codigo: '0163', nombre: '0163 - Banco del Tesoro', keywords: ['tesoro'] },
+  { codigo: '0175', nombre: '0175 - Banco Bicentenario', keywords: ['bicentenario'] },
+  { codigo: '0115', nombre: '0115 - Banco Exterior', keywords: ['exterior'] },
+  { codigo: '0151', nombre: '0151 - Banco Fondo Común (BFC)', keywords: ['fondo comun', 'bfc'] },
+  { codigo: '0156', nombre: '0156 - 100% Banco', keywords: ['100%'] },
+  { codigo: '0171', nombre: '0171 - Banco Activo', keywords: ['activo'] },
+  { codigo: '0169', nombre: '0169 - Banco Plaza', keywords: ['plaza'] }
 ];
 
 function parseMontoVenezolano(val: any): number {
-  if (typeof val === 'number') return val;
+  if (typeof val === 'number') return isNaN(val) ? 0 : val;
   if (!val) return 0;
   let str = String(val).trim().replace(/[^\d.,]/g, '');
   if (!str) return 0;
@@ -133,7 +139,7 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // 2. Procesamiento con Google Gemini Vision (gemini-3.6-flash con fallback a gemini-3.5-flash)
+    // 2. Procesamiento con Google Gemini Vision (gemini-3.6-flash / gemini-3.5-flash-lite)
     const apiKey = process.env.GEMINI_API_KEY;
     if (apiKey && imageBase64) {
       try {
@@ -147,24 +153,31 @@ export async function POST(request: NextRequest) {
         }
 
         const promptText = `Eres un auditor contable bancario en Venezuela con alta precisión. Analiza minuciosamente este comprobante o capture bancario venezolano.
-Extrae los siguientes datos y responde ÚNICAMENTE con un objeto JSON válido (sin explicaciones adicionales, sin markdown):
-
+Extrae los siguientes datos y responde ÚNICAMENTE con un objeto JSON válido estructurado así:
 {
-  "referencia": "Cadena que contiene SOLO los dígitos del número de referencia, número de operación, número de confirmación o secuencia bancaria",
-  "montoBs": "El monto numérico exacto en Bolívares (ejemplo: '41.624,50' o 41624.50)",
-  "bancoEmisor": "Nombre del banco emisor venezolano de donde salieron los fondos (ejemplo: 'Banco de Venezuela', 'Banesco', 'Mercantil', 'Provincial', 'Bancamiga', 'BNC', 'Bancaribe', 'Banco del Tesoro')",
-  "fechaTransferencia": "Fecha de la transacción en formato YYYY-MM-DD o DD/MM/YYYY",
-  "metodo": "'PAGO_MOVIL' si indica Pago Móvil / C2P / P2P / Pago Clave o 'TRANSFERENCIA' si es transferencia bancaria",
+  "referencia": "cadena con SOLO los dígitos del número de referencia, confirmación, secuencia o aprobación de la transacción (de 4 a 15 dígitos numéricos)",
+  "montoBs": "monto numérico principal en Bolívares transferido o debitado (ejemplo: 41624.50 o '41.624,50')",
+  "bancoEmisor": "Nombre del banco emisor venezolano de origen donde salieron los fondos (ej: Banco de Venezuela, Banesco, Mercantil, Provincial, Bancamiga, BNC, Bancaribe, Banco del Tesoro)",
+  "fechaTransferencia": "Fecha de la transacción en formato YYYY-MM-DD",
+  "metodo": "'PAGO_MOVIL' si indica Pago Móvil / C2P / P2P / Pago Clave / Tpago / Dinero Rápido, o 'TRANSFERENCIA' si es transferencia bancaria",
   "confianza": 98
-}`;
+}
 
-        const modelsToTry = ['gemini-3.6-flash', 'gemini-3.5-flash'];
+REGLAS DE PRECISIÓN ESTRICTAS:
+1. 'montoBs': Debe ser el MONTO PRINCIPAL transferido/debitado. NUNCA tomes la comisión bancaria, ni el saldo disponible, ni montos en divisas secundarias.
+2. 'referencia': Debe ser el número de operación, número de recibo, secuencia o referencia bancaria. NUNCA tomes números de teléfono (0414/0424/0412/0416), ni números de cédula/Rif (V-...), ni números de cuenta de 20 dígitos.
+3. 'bancoEmisor': Identifica el banco de origen/emisor del pago. Si no aparece explícito, infiérelo por el logotipo, encabezado o formato del comprobante.
+4. Responde EXCLUSIVAMENTE con el JSON parseable sin texto adicional.`;
+
+        // Modelos soportados en orden de prioridad y velocidad
+        const modelsToTry = ['gemini-3.6-flash', 'gemini-3.5-flash-lite', 'gemini-3.5-flash'];
         let geminiData: any = null;
+        let usedModel = 'gemini-3.6-flash';
 
         for (const model of modelsToTry) {
           try {
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 12000);
+            const timeoutId = setTimeout(() => controller.abort(), 6000); // 6s timeout por intento
 
             const geminiRes = await fetch(
               `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
@@ -185,7 +198,12 @@ Extrae los siguientes datos y responde ÚNICAMENTE con un objeto JSON válido (s
                         }
                       ]
                     }
-                  ]
+                  ],
+                  generationConfig: {
+                    responseMimeType: 'application/json',
+                    temperature: 0.1,
+                    maxOutputTokens: 250
+                  }
                 })
               }
             );
@@ -194,11 +212,12 @@ Extrae los siguientes datos y responde ÚNICAMENTE con un objeto JSON válido (s
             if (geminiRes.ok) {
               geminiData = await geminiRes.json();
               if (geminiData?.candidates?.[0]?.content?.parts?.[0]?.text) {
+                usedModel = model;
                 break; // Modelo respondió con éxito
               }
             }
           } catch (modelErr) {
-            // Intentar con siguiente modelo en caso de error
+            // Intentar con siguiente modelo en caso de timeout o error
           }
         }
 
@@ -218,12 +237,12 @@ Extrae los siguientes datos y responde ÚNICAMENTE con un objeto JSON válido (s
               success: true,
               data: {
                 referencia: refLimpia || Math.floor(100000 + Math.random() * 900000).toString(),
-                montoBs: montoParseado > 0 ? montoParseado : 41624.50,
+                montoBs: montoParseado,
                 bancoEmisor: bancoDetectado,
                 fechaTransferencia: fechaDetectada,
                 metodo: metodoDetectado,
                 confianza: parsed.confianza || 98,
-                mensaje: '✓ Comprobante analizado con alta precisión mediante Google Gemini 3.6 Flash Vision.'
+                mensaje: `✓ Comprobante analizado con alta precisión mediante Google Gemini Vision (${usedModel}).`
               }
             });
           }
@@ -248,7 +267,7 @@ Extrae los siguientes datos y responde ÚNICAMENTE con un objeto JSON válido (s
       : 'PAGO_MOVIL';
 
     let refGenerada = '';
-    const numerosEnNombre = filename.match(/\d{5,10}/);
+    const numerosEnNombre = filename.match(/\d{4,15}/);
     if (numerosEnNombre) {
       refGenerada = numerosEnNombre[0];
     } else {
@@ -261,13 +280,13 @@ Extrae los siguientes datos y responde ÚNICAMENTE con un objeto JSON válido (s
       success: true,
       data: {
         referencia: refGenerada,
-        montoBs: 41624.50,
+        montoBs: 0,
         bancoEmisor: bancoDetectado,
         fechaTransferencia: hoy,
         metodo: metodoDetectado,
-        confianza: apiKey ? 90 : 85,
+        confianza: apiKey ? 85 : 80,
         mensaje: apiKey 
-          ? 'Comprobante escaneado mediante OCR de respaldo.' 
+          ? 'Comprobante escaneado mediante OCR de respaldo. Verifica los datos requeridos.' 
           : 'Comprobante procesado (Configura GEMINI_API_KEY en .env.local para OCR en tiempo real con Gemini).'
       }
     });
@@ -279,3 +298,4 @@ Extrae los siguientes datos y responde ÚNICAMENTE con un objeto JSON válido (s
     );
   }
 }
+

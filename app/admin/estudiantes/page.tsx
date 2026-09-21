@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Users, 
   Search, 
@@ -30,125 +30,231 @@ interface EstudianteAdmin {
   estadoMatricula: 'SOLVENTE' | 'PREINSC_PENDIENTE_PAGO' | 'EN_REVISION';
 }
 
-export default function AdminEstudiantesPage() {
-  const [estudiantes] = useState<EstudianteAdmin[]>([
-    {
-      id: 'e-1',
-      nombres: 'Sofia Valentina',
-      apellidos: 'Pérez Delgado',
-      cedulaEscolar: '18-18542991-01',
-      esCedulaAutomatica: true,
-      fechaNacimiento: '14/05/2018',
-      nivelEducativo: 'PRIMARIA',
-      grado: '1er Grado Educación Primaria',
-      representante: 'María Elena Delgado',
-      ciRepresentante: 'V-18.542.991',
-      telefonoRepresentante: '0414-1234567',
-      estadoMatricula: 'EN_REVISION'
-    },
-    {
-      id: 'e-2',
-      nombres: 'Mateo Alejandro',
-      apellidos: 'Pérez Delgado',
-      cedulaEscolar: '22-18542991-02',
-      esCedulaAutomatica: true,
-      fechaNacimiento: '20/11/2022',
-      nivelEducativo: 'INICIAL',
-      grado: 'Maternal',
-      representante: 'María Elena Delgado',
-      ciRepresentante: 'V-18.542.991',
-      telefonoRepresentante: '0414-1234567',
-      estadoMatricula: 'EN_REVISION'
-    },
-    {
-      id: 'e-3',
-      nombres: 'Lucas Daniel',
-      apellidos: 'Mendoza Ramos',
-      cedulaEscolar: '16-15320104-01',
-      esCedulaAutomatica: true,
-      fechaNacimiento: '08/02/2016',
-      nivelEducativo: 'PRIMARIA',
-      grado: '3er Grado Educación Primaria',
-      representante: 'Carlos Andrés Mendoza',
-      ciRepresentante: 'V-15.320.104',
-      telefonoRepresentante: '0424-9876543',
-      estadoMatricula: 'EN_REVISION'
-    },
-    {
-      id: 'e-4',
-      nombres: 'Camila Victoria',
-      apellidos: 'Morales Vargas',
-      cedulaEscolar: '12-19880455-01',
-      esCedulaAutomatica: true,
-      fechaNacimiento: '15/09/2012',
-      nivelEducativo: 'MEDIA_GENERAL',
-      grado: '2do Año Media General',
-      representante: 'Valentina Morales',
-      ciRepresentante: 'V-19.880.455',
-      telefonoRepresentante: '0412-5551234',
-      estadoMatricula: 'SOLVENTE'
-    },
-    {
-      id: 'e-5',
-      nombres: 'Andrea Nicole',
-      apellidos: 'Gómez Rivas',
-      cedulaEscolar: '14-14221800-01',
-      esCedulaAutomatica: true,
-      fechaNacimiento: '03/07/2014',
-      nivelEducativo: 'PRIMARIA',
-      grado: '5to Grado Educación Primaria',
-      representante: 'Roberto Gómez',
-      ciRepresentante: 'V-14.221.800',
-      telefonoRepresentante: '0416-7890123',
-      estadoMatricula: 'SOLVENTE'
-    },
-    {
-      id: 'e-6',
-      nombres: 'Diego Alejandro',
-      apellidos: 'Silva Carrillo',
-      cedulaEscolar: '11-13445890-01',
-      esCedulaAutomatica: true,
-      fechaNacimiento: '24/04/2011',
-      nivelEducativo: 'MEDIA_GENERAL',
-      grado: '3er Año Media General',
-      representante: 'Fernando Silva',
-      ciRepresentante: 'V-13.445.890',
-      telefonoRepresentante: '0414-3332211',
-      estadoMatricula: 'SOLVENTE'
-    },
-    {
-      id: 'e-7',
-      nombres: 'Mariana Isabel',
-      apellidos: 'Herrera Blanco',
-      cedulaEscolar: '10-12889004-01',
-      esCedulaAutomatica: true,
-      fechaNacimiento: '18/10/2010',
-      nivelEducativo: 'MEDIA_GENERAL',
-      grado: '4to Año Media General',
-      representante: 'Luisa Blanco',
-      ciRepresentante: 'V-12.889.004',
-      telefonoRepresentante: '0424-7778899',
-      estadoMatricula: 'SOLVENTE'
-    },
-    {
-      id: 'e-8',
-      nombres: 'José Leonardo',
-      apellidos: 'Padrón Castillo',
-      cedulaEscolar: '09-11556778-01',
-      esCedulaAutomatica: true,
-      fechaNacimiento: '12/03/2009',
-      nivelEducativo: 'MEDIA_GENERAL',
-      grado: '5to Año Media General',
-      representante: 'Leonardo Padrón',
-      ciRepresentante: 'V-11.556.778',
-      telefonoRepresentante: '0416-4445566',
-      estadoMatricula: 'SOLVENTE'
-    }
-  ]);
+const INITIAL_ESTUDIANTES: EstudianteAdmin[] = [
+  {
+    id: 'e-1',
+    nombres: 'Sofia Valentina',
+    apellidos: 'Pérez Delgado',
+    cedulaEscolar: '18-18542991-01',
+    esCedulaAutomatica: true,
+    fechaNacimiento: '14/05/2018',
+    nivelEducativo: 'PRIMARIA',
+    grado: '1er Grado Educación Primaria',
+    representante: 'María Elena Delgado',
+    ciRepresentante: 'V-18.542.991',
+    telefonoRepresentante: '0414-1234567',
+    estadoMatricula: 'EN_REVISION'
+  },
+  {
+    id: 'e-2',
+    nombres: 'Mateo Alejandro',
+    apellidos: 'Pérez Delgado',
+    cedulaEscolar: '22-18542991-02',
+    esCedulaAutomatica: true,
+    fechaNacimiento: '20/11/2022',
+    nivelEducativo: 'INICIAL',
+    grado: 'Maternal',
+    representante: 'María Elena Delgado',
+    ciRepresentante: 'V-18.542.991',
+    telefonoRepresentante: '0414-1234567',
+    estadoMatricula: 'EN_REVISION'
+  },
+  {
+    id: 'est-lucas-rojas',
+    nombres: 'Lucas Valentino',
+    apellidos: 'Rojas Franco',
+    cedulaEscolar: '16-24665678-01',
+    esCedulaAutomatica: true,
+    fechaNacimiento: '14/05/2016',
+    nivelEducativo: 'PRIMARIA',
+    grado: '4to Grado Educación Primaria',
+    representante: 'Celimar Rojas',
+    ciRepresentante: 'V-24.665.678',
+    telefonoRepresentante: '0412-1234567',
+    estadoMatricula: 'SOLVENTE'
+  },
+  {
+    id: 'e-3',
+    nombres: 'Lucas Daniel',
+    apellidos: 'Mendoza Ramos',
+    cedulaEscolar: '16-15320104-01',
+    esCedulaAutomatica: true,
+    fechaNacimiento: '08/02/2016',
+    nivelEducativo: 'PRIMARIA',
+    grado: '3er Grado Educación Primaria',
+    representante: 'Carlos Andrés Mendoza',
+    ciRepresentante: 'V-15.320.104',
+    telefonoRepresentante: '0424-9876543',
+    estadoMatricula: 'EN_REVISION'
+  },
+  {
+    id: 'e-4',
+    nombres: 'Camila Victoria',
+    apellidos: 'Morales Vargas',
+    cedulaEscolar: '12-19880455-01',
+    esCedulaAutomatica: true,
+    fechaNacimiento: '15/09/2012',
+    nivelEducativo: 'MEDIA_GENERAL',
+    grado: '2do Año Media General',
+    representante: 'Valentina Morales',
+    ciRepresentante: 'V-19.880.455',
+    telefonoRepresentante: '0412-5551234',
+    estadoMatricula: 'SOLVENTE'
+  },
+  {
+    id: 'e-5',
+    nombres: 'Andrea Nicole',
+    apellidos: 'Gómez Rivas',
+    cedulaEscolar: '14-14221800-01',
+    esCedulaAutomatica: true,
+    fechaNacimiento: '03/07/2014',
+    nivelEducativo: 'PRIMARIA',
+    grado: '5to Grado Educación Primaria',
+    representante: 'Roberto Gómez',
+    ciRepresentante: 'V-14.221.800',
+    telefonoRepresentante: '0416-7890123',
+    estadoMatricula: 'SOLVENTE'
+  },
+  {
+    id: 'e-6',
+    nombres: 'Diego Alejandro',
+    apellidos: 'Silva Carrillo',
+    cedulaEscolar: '11-13445890-01',
+    esCedulaAutomatica: true,
+    fechaNacimiento: '24/04/2011',
+    nivelEducativo: 'MEDIA_GENERAL',
+    grado: '3er Año Media General',
+    representante: 'Fernando Silva',
+    ciRepresentante: 'V-13.445.890',
+    telefonoRepresentante: '0414-3332211',
+    estadoMatricula: 'SOLVENTE'
+  },
+  {
+    id: 'e-7',
+    nombres: 'Mariana Isabel',
+    apellidos: 'Herrera Blanco',
+    cedulaEscolar: '10-12889004-01',
+    esCedulaAutomatica: true,
+    fechaNacimiento: '18/10/2010',
+    nivelEducativo: 'MEDIA_GENERAL',
+    grado: '4to Año Media General',
+    representante: 'Luisa Blanco',
+    ciRepresentante: 'V-12.889.004',
+    telefonoRepresentante: '0424-7778899',
+    estadoMatricula: 'SOLVENTE'
+  },
+  {
+    id: 'e-8',
+    nombres: 'José Leonardo',
+    apellidos: 'Padrón Castillo',
+    cedulaEscolar: '09-11556778-01',
+    esCedulaAutomatica: true,
+    fechaNacimiento: '12/03/2009',
+    nivelEducativo: 'MEDIA_GENERAL',
+    grado: '5to Año Media General',
+    representante: 'Leonardo Padrón',
+    ciRepresentante: 'V-11.556.778',
+    telefonoRepresentante: '0416-4445566',
+    estadoMatricula: 'SOLVENTE'
+  }
+];
 
+export default function AdminEstudiantesPage() {
+  const [estudiantes, setEstudiantes] = useState<EstudianteAdmin[]>(INITIAL_ESTUDIANTES);
   const [searchTerm, setSearchTerm] = useState('');
   const [filtroNivel, setFiltroNivel] = useState<string>('TODOS');
   const [estudianteSeleccionado, setEstudianteSeleccionado] = useState<EstudianteAdmin | null>(null);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      let combined = [...INITIAL_ESTUDIANTES];
+
+      // 1. Cargar desde la base de datos maestra sicp_estudiantes_db
+      const masterDb = localStorage.getItem('sicp_estudiantes_db');
+      if (masterDb) {
+        try {
+          const parsed = JSON.parse(masterDb);
+          if (Array.isArray(parsed)) {
+            parsed.forEach((est: any) => {
+              if (!combined.some(e => e.cedulaEscolar === est.cedulaEscolar || e.id === est.id)) {
+                combined.unshift({
+                  id: est.id || `est-${Date.now()}`,
+                  nombres: est.nombres,
+                  apellidos: est.apellidos,
+                  cedulaEscolar: est.cedulaEscolar,
+                  esCedulaAutomatica: true,
+                  fechaNacimiento: est.fechaNacimiento || '15/04/2018',
+                  nivelEducativo: est.grado?.includes('Inicial') || est.grado?.includes('Maternal') ? 'INICIAL' : est.grado?.includes('Año') ? 'MEDIA_GENERAL' : 'PRIMARIA',
+                  grado: est.grado || 'Educación Primaria',
+                  representante: est.representante || est.representanteNombre || 'Celimar Rojas',
+                  ciRepresentante: est.ciRepresentante || `V-${est.representanteCedula || '24.665.678'}`,
+                  telefonoRepresentante: est.telefonoRepresentante || '0412-1234567',
+                  estadoMatricula: est.estado === 'SOLVENTE' ? 'SOLVENTE' : 'PREINSC_PENDIENTE_PAGO'
+                });
+              }
+            });
+          }
+        } catch {}
+      }
+
+      // 2. Cargar desde todas las listas de representados en localStorage
+      const keys = ['representados_celimrrojas@gmail.com', 'representados_admin@colegiobolivar.edu.ve', 'representados_maria.delgado@gmail.com'];
+      keys.forEach(k => {
+        const stored = localStorage.getItem(k);
+        if (stored) {
+          try {
+            const list = JSON.parse(stored);
+            if (Array.isArray(list)) {
+              list.forEach((est: any) => {
+                if (!combined.some(e => e.cedulaEscolar === est.cedulaEscolar || e.id === est.id)) {
+                  const isCel = k.includes('celim') || k.includes('admin');
+                  combined.unshift({
+                    id: est.id || `est-${Date.now()}`,
+                    nombres: est.nombres,
+                    apellidos: est.apellidos,
+                    cedulaEscolar: est.cedulaEscolar,
+                    esCedulaAutomatica: true,
+                    fechaNacimiento: est.fechaNacimiento || '15/04/2018',
+                    nivelEducativo: est.grado?.includes('Inicial') || est.grado?.includes('Maternal') ? 'INICIAL' : est.grado?.includes('Año') ? 'MEDIA_GENERAL' : 'PRIMARIA',
+                    grado: est.grado || 'Educación Primaria',
+                    representante: isCel ? 'Celimar Rojas' : 'María Elena Delgado',
+                    ciRepresentante: isCel ? 'V-24.665.678' : 'V-18.542.991',
+                    telefonoRepresentante: isCel ? '0412-1234567' : '0414-1234567',
+                    estadoMatricula: est.estado === 'SOLVENTE' ? 'SOLVENTE' : 'PREINSC_PENDIENTE_PAGO'
+                  });
+                }
+              });
+            }
+          } catch {}
+        }
+      });
+
+      // 3. Sincronizar estado de solvencia con sicp_pagos_db
+      const storedPagos = localStorage.getItem('sicp_pagos_db');
+      if (storedPagos) {
+        try {
+          const pagos = JSON.parse(storedPagos);
+          if (Array.isArray(pagos)) {
+            combined = combined.map(e => {
+              const pagoMatch = pagos.find((p: any) => 
+                p.imputaciones && p.imputaciones.some((imp: any) => 
+                  imp.cedulaEscolar === e.cedulaEscolar || 
+                  (imp.estudiante && imp.estudiante.toLowerCase().includes(e.nombres.toLowerCase()))
+                )
+              );
+              if (pagoMatch) {
+                if (pagoMatch.estado === 'APROBADO') return { ...e, estadoMatricula: 'SOLVENTE' };
+                if (pagoMatch.estado === 'PENDIENTE') return { ...e, estadoMatricula: 'EN_REVISION' };
+              }
+              return e;
+            });
+          }
+        } catch {}
+      }
+
+      setEstudiantes(combined);
+    }
+  }, []);
 
   const filtrados = estudiantes.filter(e => {
     const matchesNivel = filtroNivel === 'TODOS' || e.nivelEducativo === filtroNivel;

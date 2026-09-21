@@ -276,14 +276,79 @@ export default function PagarArancelPage() {
         try {
           const parsedList = JSON.parse(userList);
           if (Array.isArray(parsedList) && parsedList.length > 0) {
-            if (isCelimar) {
-              // Asegurar que si es Celimar NUNCA contenga los de María Delgado
-              rawList = parsedList.filter((est: any) => !est.apellidos?.toLowerCase().includes('delgado'));
-            } else {
-              rawList = parsedList;
-            }
+            rawList = parsedList;
           }
         } catch {}
+      }
+
+      // Si es Celimar, también sincronizar con otras claves de sesión de Celimar
+      if (isCelimar) {
+        const altKeys = ['representados_celimrrojas@gmail.com', 'representados_admin@colegiobolivar.edu.ve'];
+        altKeys.forEach(k => {
+          const altList = localStorage.getItem(k);
+          if (altList) {
+            try {
+              const parsedAlt = JSON.parse(altList);
+              if (Array.isArray(parsedAlt)) {
+                parsedAlt.forEach((est: any) => {
+                  if (!rawList.some((r: any) => r.cedulaEscolar === est.cedulaEscolar || r.id === est.id)) {
+                    rawList.push(est);
+                  }
+                });
+              }
+            } catch {}
+          }
+        });
+      }
+
+      // Sincronizar desde la Base de Datos Global de Estudiantes (sicp_estudiantes_db)
+      const masterDb = localStorage.getItem('sicp_estudiantes_db');
+      if (masterDb) {
+        try {
+          const parsedMaster = JSON.parse(masterDb);
+          if (Array.isArray(parsedMaster)) {
+            parsedMaster.forEach((est: any) => {
+              const matchTutor = (est.representanteEmail && est.representanteEmail.toLowerCase() === email) ||
+                (isCelimar && (est.representanteEmail?.includes('celim') || est.representanteEmail?.includes('admin') || est.representanteCedula?.includes('24665678') || est.ciRepresentante?.includes('24.665.678') || est.representanteNombre?.toLowerCase().includes('celimar'))) ||
+                (!isCelimar && est.representanteEmail === email);
+
+              if (matchTutor && !rawList.some((r: any) => r.cedulaEscolar === est.cedulaEscolar || r.id === est.id)) {
+                rawList.push(est);
+              }
+            });
+          }
+        } catch {}
+      }
+
+      // Sincronizar si hay alumnos reportados en pagos (sicp_pagos_db)
+      if (allPagos && allPagos.length > 0) {
+        allPagos.forEach((pago: any) => {
+          const isTutorPago = (pago.tutorEmail && pago.tutorEmail.toLowerCase() === email) ||
+            (isCelimar && (pago.tutorEmail?.includes('celim') || pago.tutorEmail?.includes('admin') || pago.tutorNombre?.toLowerCase().includes('celimar') || pago.ciRepresentante?.includes('24665678') || pago.ciRepresentante?.includes('24.665.678')));
+
+          if (isTutorPago && Array.isArray(pago.imputaciones)) {
+            pago.imputaciones.forEach((imp: any) => {
+              if (imp.estudiante && !rawList.some((r: any) => (imp.cedulaEscolar && r.cedulaEscolar === imp.cedulaEscolar) || `${r.nombres} ${r.apellidos}`.toLowerCase() === imp.estudiante.toLowerCase() || imp.estudiante.toLowerCase().includes(r.nombres.toLowerCase()))) {
+                const partes = imp.estudiante.trim().split(' ');
+                const nombres = partes.slice(0, Math.ceil(partes.length / 2)).join(' ') || imp.estudiante;
+                const apellidos = partes.slice(Math.ceil(partes.length / 2)).join(' ') || (isCelimar ? 'Rojas' : 'Delgado');
+                rawList.push({
+                  id: `est-pago-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
+                  nombres,
+                  apellidos,
+                  cedulaEscolar: imp.cedulaEscolar || `18-${sessionCI}-01`,
+                  grado: imp.grado || 'Educación Primaria',
+                  arancel: 50.00,
+                  estado: pago.estado === 'APROBADO' ? 'SOLVENTE' : pago.estado === 'PENDIENTE' ? 'EN_REVISION' : 'PENDIENTE'
+                });
+              }
+            });
+          }
+        });
+      }
+
+      if (isCelimar) {
+        rawList = rawList.filter((est: any) => !est.apellidos?.toLowerCase().includes('delgado'));
       }
 
       if (rawList.length === 0) {
@@ -299,7 +364,6 @@ export default function PagarArancelPage() {
               estado: 'SOLVENTE'
             }
           ];
-          localStorage.setItem(`representados_${email}`, JSON.stringify(rawList));
         } else if (isMaria) {
           rawList = [
             {
@@ -319,8 +383,13 @@ export default function PagarArancelPage() {
               arancel: 50.00
             }
           ];
-          localStorage.setItem(`representados_${email}`, JSON.stringify(rawList));
         }
+      }
+
+      localStorage.setItem(`representados_${email}`, JSON.stringify(rawList));
+      if (isCelimar) {
+        localStorage.setItem('representados_celimrrojas@gmail.com', JSON.stringify(rawList));
+        localStorage.setItem('representados_admin@colegiobolivar.edu.ve', JSON.stringify(rawList));
       }
 
       // Cálculo dinámico de saldo y abonos por estudiante

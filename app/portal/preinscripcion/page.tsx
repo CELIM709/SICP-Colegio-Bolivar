@@ -145,18 +145,20 @@ export default function PreinscripcionPage() {
     if (typeof window !== 'undefined') {
       const session = localStorage.getItem('sicp_session');
       let activeEmail = userEmail.trim().toLowerCase();
+      let activeNombre = tutorNombre;
+      let activeCI = tutorCI;
+
       if (session) {
         try {
           const parsed = JSON.parse(session);
           if (parsed.email) activeEmail = parsed.email.trim().toLowerCase();
+          if (parsed.nombre) activeNombre = parsed.nombre;
+          if (parsed.cedula) activeCI = parsed.cedula.replace(/\D/g, '');
         } catch {}
       }
-      const storageKey = `representados_${activeEmail}`;
-      const existing = localStorage.getItem(storageKey);
-      let list = [];
-      if (existing) {
-        try { list = JSON.parse(existing); } catch {}
-      }
+
+      const isCelimar = activeEmail.includes('celim') || activeEmail.includes('rojas') || activeNombre.toLowerCase().includes('celimar') || activeCI.includes('24665678') || activeEmail.includes('admin');
+
       const newStudent = {
         id: `est-${Date.now()}`,
         nombres: formData.nombres.trim(),
@@ -170,13 +172,46 @@ export default function PreinscripcionPage() {
           ? 'Media General' 
           : 'Educación Primaria',
         estado: 'PENDIENTE',
-        arancel: 50.00
+        arancel: 50.00,
+        arancelUsd: 50.00,
+        representante: activeNombre,
+        representanteNombre: activeNombre,
+        representanteEmail: activeEmail,
+        representanteCedula: activeCI,
+        ciRepresentante: `V-${activeCI.replace(/\D/g, '')}`,
+        telefonoRepresentante: '0412-1234567'
       };
+
+      // 1. Guardar en representados_${activeEmail}
+      const storageKey = `representados_${activeEmail}`;
+      const existing = localStorage.getItem(storageKey);
+      let list = [];
+      if (existing) {
+        try { list = JSON.parse(existing); } catch {}
+      }
+      list = list.filter((e: any) => e.cedulaEscolar !== nuevaCedula && e.id !== newStudent.id);
       list.push(newStudent);
       localStorage.setItem(storageKey, JSON.stringify(list));
+
+      // 2. Si es Celimar, asegurar guardado en claves celimrrojas y admin
+      if (isCelimar) {
+        localStorage.setItem('representados_celimrrojas@gmail.com', JSON.stringify(list));
+        localStorage.setItem('representados_admin@colegiobolivar.edu.ve', JSON.stringify(list));
+      }
+
       if (activeEmail === 'maria.delgado@gmail.com') {
         localStorage.setItem('representados_maria.delgado@gmail.com', JSON.stringify(list));
       }
+
+      // 3. Guardar en Base de Datos Global de Estudiantes (sicp_estudiantes_db)
+      let masterList = [];
+      const storedMaster = localStorage.getItem('sicp_estudiantes_db');
+      if (storedMaster) {
+        try { masterList = JSON.parse(storedMaster); } catch {}
+      }
+      masterList = masterList.filter((e: any) => e.cedulaEscolar !== nuevaCedula && e.id !== newStudent.id);
+      masterList.push(newStudent);
+      localStorage.setItem('sicp_estudiantes_db', JSON.stringify(masterList));
     }
 
     setGuardado(true);
