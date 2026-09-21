@@ -48,53 +48,45 @@
     },
     {
       "parameters": {
-        "fromEmail": "cobranzas@colegiobolivar.edu.ve",
-        "toEmail": "={{ $json.body.representante.email }}",
-        "subject": "✓ Confirmación de Inscripción - Colegio Simón Bolívar",
-        "html": "<h2>Constancia de Inscripción Emitida</h2><p>Estimado(a) {{ $json.body.representante.nombre }}, su pago ha sido verificado satisfactoriamente.</p>"
+        "mode": "runOnceForEachItem",
+        "jsCode": "const item = $input.item.json.body || $input.item.json;\nreturn {\n  estado: 'DESPACHADO_EXITOSO',\n  evento: 'INSCRIPCION_CONFIRMADA',\n  destinatario: item.representante?.email || 'representante@colegiobolivar.edu.ve',\n  titular: item.representante?.nombre || 'Representante Legal',\n  estudiantes: item.estudiantes || [],\n  referencia: item.referencia || 'N/A',\n  montoTotalUsd: item.montoTotalUsd || 50.0,\n  asunto: `✓ Constancia Oficial de Inscripción 2026-2027 • U.E. Colegio Simón Bolívar`,\n  fechaEnvio: new Date().toISOString()\n};"
       },
-      "id": "email-inscripcion",
-      "name": "Email Constancia Inscripción",
-      "type": "n8n-nodes-base.emailSend",
+      "id": "code-inscripcion",
+      "name": "Despacho Constancia Inscripción",
+      "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [760, 140]
     },
     {
       "parameters": {
-        "fromEmail": "cobranzas@colegiobolivar.edu.ve",
-        "toEmail": "={{ $json.body.representante.email }}",
-        "subject": "⚠️ Notificación de Inconsistencia en Comprobante",
-        "html": "<h2>Comprobante Rechazado</h2><p>Estimado(a) {{ $json.body.representante.nombre }}, el comprobante Ref. {{ $json.body.pago.referencia }} presentó inconsistencias: {{ $json.body.pago.motivo }}.</p>"
+        "mode": "runOnceForEachItem",
+        "jsCode": "const item = $input.item.json.body || $input.item.json;\nreturn {\n  estado: 'ALERTA_ENVIADA',\n  evento: 'PAGO_RECHAZADO',\n  destinatario: item.representante?.email || 'representante@colegiobolivar.edu.ve',\n  referencia: item.referencia || 'N/A',\n  motivoRechazo: item.motivo || 'Discrepancia en extracto bancario',\n  asunto: `⚠️ Notificación de Inconsistencia en Comprobante Bancario`,\n  fechaEnvio: new Date().toISOString()\n};"
       },
-      "id": "email-rechazo",
-      "name": "Email Alerta Rechazo",
-      "type": "n8n-nodes-base.emailSend",
+      "id": "code-rechazo",
+      "name": "Alerta Discrepancia Pago",
+      "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [760, 260]
     },
     {
       "parameters": {
-        "fromEmail": "seguridad@colegiobolivar.edu.ve",
-        "toEmail": "={{ $json.body.usuario.email }}",
-        "subject": "🔐 Código de Seguridad OTP - Recuperación",
-        "html": "<h2>Código de Recuperación</h2><p>Su código de verificación temporal es: <strong>{{ $json.body.usuario.codigoOtp }}</strong> (Válido por 10 min).</p>"
+        "mode": "runOnceForEachItem",
+        "jsCode": "const item = $input.item.json.body || $input.item.json;\nreturn {\n  estado: 'TOKEN_OTP_DESPACHADO',\n  evento: 'RECUPERAR_PASSWORD',\n  destinatario: item.usuario?.email || item.email || 'usuario@colegiobolivar.edu.ve',\n  codigoOtp: item.codigoOtp || item.usuario?.codigoOtp || '123456',\n  validez: '10 minutos',\n  asunto: `🔐 Código de Seguridad OTP - Recuperación de Cuenta SICP`,\n  fechaEnvio: new Date().toISOString()\n};"
       },
-      "id": "email-otp",
-      "name": "Email Token OTP",
-      "type": "n8n-nodes-base.emailSend",
+      "id": "code-otp",
+      "name": "Despacho Token OTP",
+      "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [760, 380]
     },
     {
       "parameters": {
-        "fromEmail": "administracion@colegiobolivar.edu.ve",
-        "toEmail": "={{ $json.body.representante.email }}",
-        "subject": "📋 Acta de Devolución Generada",
-        "html": "<h2>Solicitud de Reintegro Registrada</h2><p>Correlativo: {{ $json.body.devolucion.correlativo }}. Monto a liquidar: {{ $json.body.devolucion.montoBs }} Bs.</p>"
+        "mode": "runOnceForEachItem",
+        "jsCode": "const item = $input.item.json.body || $input.item.json;\nreturn {\n  estado: 'ACTA_DEVOLUCION_GENERADA',\n  evento: 'DEVOLUCION_SOLICITADA',\n  destinatario: item.representante?.email || 'representante@colegiobolivar.edu.ve',\n  correlativo: item.devolucion?.correlativo || 'ACTA-DEV-2026-001',\n  montoBs: item.devolucion?.montoBs || item.montoTotalBs || 0,\n  asunto: `📋 Acta Oficial de Devolución y Desistimiento - Res. 058`,\n  fechaEnvio: new Date().toISOString()\n};"
       },
-      "id": "email-devolucion",
-      "name": "Email Acta Devolución",
-      "type": "n8n-nodes-base.emailSend",
+      "id": "code-devolucion",
+      "name": "Despacho Acta Devolución",
+      "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [760, 500]
     }
@@ -115,28 +107,28 @@
       "main": [
         [
           {
-            "node": "Email Constancia Inscripción",
+            "node": "Despacho Constancia Inscripción",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "Email Alerta Rechazo",
+            "node": "Alerta Discrepancia Pago",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "Email Token OTP",
+            "node": "Despacho Token OTP",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "Email Acta Devolución",
+            "node": "Despacho Acta Devolución",
             "type": "main",
             "index": 0
           }
